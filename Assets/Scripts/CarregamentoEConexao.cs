@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class CarregamentoEConexao : MonoBehaviourPunCallbacks
 {
@@ -28,5 +29,6 @@ public class CarregamentoEConexao : MonoBehaviourPunCallbacks
     {
         _txtInfo.text = "Entrei no lobby do servidor photon..";
         Debug.Log("Entrei no lobby do servidor photon..");
+        SceneManager.LoadScene("CreateGame");
     }
 }

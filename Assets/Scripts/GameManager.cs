@@ -7,18 +7,24 @@ using UnityEngine;
 public class GameManager : MonoBehaviourPunCallbacks
 {
 
+    public static GameManager Instance;
     [SerializeField] GameObject playerPrefab;
     [SerializeField] Transform playerSpawnerPosition;
+
+    public void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+    }
+
 
     // Start is called before the first frame update
     void Start()
     {
 
-        if (playerPrefab == null)
-        {
-            Debug.Log("Prefab do jogador não está definido no GameManager");
-        }
-        else
+        if (PlayerController.LocalPlayerInstance == null)
         {
             PhotonNetwork.Instantiate("Prefabs/" + playerPrefab.name, playerSpawnerPosition.position, Quaternion.identity);
         }

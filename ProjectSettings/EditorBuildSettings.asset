@@ -5,12 +5,6 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/Scenes/Lobby.unity
-    guid: 3a6e2fb35b648104a8122bf844f0e275
-  - enabled: 1
-    path: Assets/Scenes/GameScene.unity
-    guid: ef41348ff3ade3e4884e3907e77954ac
   - enabled: 1
     path: Assets/Scenes/Carregamento.unity
     guid: 52042969612f9084fab45d4588bae61e
@@ -20,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/LobbyGame.unity
     guid: 422ffff62be031f46b7ad4b1a030fd04
+  - enabled: 1
+    path: Assets/Scenes/GameScene.unity
+    guid: ef41348ff3ade3e4884e3907e77954ac
   m_configObjects: {}

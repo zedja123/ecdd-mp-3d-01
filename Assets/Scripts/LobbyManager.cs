@@ -26,6 +26,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     private void ChecaJogadores()
     {
         _playersCount = PhotonNetwork.CurrentRoom.PlayerCount;
+        Player[] playersList = PhotonNetwork.PlayerList;
 
         if (_playersCount <= 0)
         {
@@ -37,6 +38,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         for (int i = 0; i < _playersCount; i++)
         {
             _playersPanels[i].SetActive(true);
+            _playersPanels[i].GetComponentInChildren<TMP_Text>().text = playersList[i].NickName;
         }
     }
 

@@ -3,10 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviourPunCallbacks
+public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 {
 
     [SerializeField] float moveSpeed = 10f;
+    Vector3 networkingPosition;
+    
 
 
     // Update is called once per frame
@@ -21,5 +23,18 @@ public class PlayerController : MonoBehaviourPunCallbacks
 
             transform.Translate( move * moveSpeed * Time.deltaTime);
         }
+        else
+        {
+            transform.position = networkingPosition;
+        }
+    }
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        // ENVIAR
+        stream.SendNext(transform.position);
+
+        // RECEBER
+        networkingPosition = (Vector3)stream.ReceiveNext();
     }
 }

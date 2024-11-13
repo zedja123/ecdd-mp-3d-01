@@ -3,60 +3,46 @@ using Photon.Realtime;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class LobbyManager : MonoBehaviourPunCallbacks
 {
-    private string gameVersion = "1.0.0";
+    [SerializeField] private List<GameObject> _playersPanels;
+    [SerializeField] private TMP_Text _textPlayerCount;
+    int _playersCount;
+
 
     private void Awake()
     {
-        // # Crítico
-        // isso garante que possamos usar PhotonNetwork.LoadLevel()
-        // no cliente mestre e todos os clientes na mesma sala
-        // sincronizarão seus níveis automaticamente
-        PhotonNetwork.AutomaticallySyncScene = true;
+        ChecaJogadores();
     }
 
-    // Start is called before the first frame update
-    void Start()
+    private void Update()
     {
-        Conetar();
+        ChecaJogadores();
     }
 
-    private void Conetar()
+    private void ChecaJogadores()
     {
-        if (PhotonNetwork.IsConnected) 
+        _playersCount = PhotonNetwork.CurrentRoom.PlayerCount;
+
+        if (_playersCount <= 0)
         {
-            PhotonNetwork.JoinRandomRoom();
-        } else
+            return;
+        }
+
+        _textPlayerCount.text = _playersCount.ToString();
+
+        for (int i = 0; i < _playersCount; i++)
         {
-            PhotonNetwork.ConnectUsingSettings();
-            PhotonNetwork.GameVersion = gameVersion;
+            _playersPanels[i].SetActive(true);
         }
     }
 
-    public override void OnConnectedToMaster()
+    public void StartGame()
     {
-        Debug.Log("Conectado ao Photon Master Server");
-        // Entra em uma sala aleatória
-        PhotonNetwork.JoinRandomRoom();
-    }
-
-    public override void OnJoinRandomFailed(short returnCode, string message)
-    {
-        Debug.Log("Falha ao entrar em uma sala aleatória, criando uma nova sala");
-        // Cria uma nova sala
-        PhotonNetwork.CreateRoom(null, new RoomOptions { MaxPlayers = 4 });
-    }
-
-    public override void OnJoinedRoom()
-    {
-        Debug.Log("Entrou na sala com sucesso");
-        Debug.Log("Id: " + PhotonNetwork.CurrentRoom.Name);
-        
-        // Carrega a cena do jogo para todos na sala
-        if (PhotonNetwork.CurrentRoom.PlayerCount == 1)
+        if (PhotonNetwork.IsConnected && PhotonNetwork.IsMasterClient)
         {
             PhotonNetwork.LoadLevel("GameScene");
         }

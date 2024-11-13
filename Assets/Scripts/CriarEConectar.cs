@@ -87,6 +87,8 @@ public class CriarEConectar : MonoBehaviourPunCallbacks
     public override void OnJoinedRoom()
     {
         Debug.Log(PhotonNetwork.CurrentRoom.Name);
+
+        PhotonNetwork.LoadLevel("LobbyGame");
     }
 
     #endregion

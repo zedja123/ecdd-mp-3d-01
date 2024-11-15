@@ -88,8 +88,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
 
         bool isJumpPressed = Input.GetButtonDown("Jump");
-        float jump = isJumpPressed ? _rb.velocity.y + JumpForce : _rb.velocity.y;
-        Movement = new Vector3(camRelativeMov.x * _playerSpeed, jump, camRelativeMov.z * _playerSpeed);
+        Movement = new Vector3(camRelativeMov.x * _playerSpeed, 0, camRelativeMov.z * _playerSpeed);
     }
 
     private void FixedUpdate()

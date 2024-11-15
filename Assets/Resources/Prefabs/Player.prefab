@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7661358429593448032}
   - component: {fileID: 6502404915541452277}
   - component: {fileID: 3261215516226261542}
+  - component: {fileID: 2963074551637861339}
   m_Layer: 0
   m_Name: Camera
   m_TagString: Untagged
@@ -105,6 +106,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3be9baac3fbf26f429bedb6959acebe5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &2963074551637861339
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2424253463307714539}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fdd0a6b32680e44b84a22c60b4266ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clampInDegrees: {x: 360, y: 180}
+  lockCursor: 1
+  smoothing: {x: 3, y: 3}
+  characterBody: {fileID: 7119176949621798014}
+  scoped: 0
 --- !u!1 &7119176949621798014
 GameObject:
   m_ObjectHideFlags: 0
@@ -281,6 +299,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _jumpForce: 10
   _playerSpeed: 10
+  cam: {fileID: 1154287580932441430}
+  camRelativeMov: {x: 0, y: 0, z: 0}
 --- !u!1 &7169758180427874633
 GameObject:
   m_ObjectHideFlags: 0

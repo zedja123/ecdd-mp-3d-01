@@ -23,6 +23,9 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
     #region Properties
 
+    [SerializeField] Transform cam;
+
+    public Vector3 camRelativeMov;
     public Vector3 Movement { get; set; }
     public float JumpForce => _jumpForce;
     public float PlayerSpeed
@@ -65,6 +68,24 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     {
         float moveH = Input.GetAxis("Horizontal");
         float moveV = Input.GetAxis("Vertical");
+
+        Vector3 forward = cam.forward;
+        Vector3 right = cam.right;
+
+        forward.y = 0;
+        right.y = 0;
+
+        forward = forward.normalized;
+        right = right.normalized;
+
+        Vector3 forwardRelativeV = moveV * forward;
+        Vector3 rightRelativeV = moveH * right;
+
+        camRelativeMov = forwardRelativeV + rightRelativeV;
+
+
+
+
         bool isJumpPressed = Input.GetButtonDown("Jump");
         float jump = isJumpPressed ? _rb.velocity.y + JumpForce : _rb.velocity.y;
         Movement = new Vector3(moveH * PlayerSpeed, jump, moveV * PlayerSpeed);
@@ -76,7 +97,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         if (photonView.IsMine)
         {
             // local player
-            _rb.velocity = Movement;
+            transform.Translate(camRelativeMov, Space.World);
         }
         else
         {

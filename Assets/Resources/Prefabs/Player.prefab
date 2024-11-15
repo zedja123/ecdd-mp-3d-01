@@ -611,7 +611,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fe907bc620c29c4ab416278ec502670, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _jumpForce: 10
+  _jumpForce: 0
   _playerSpeed: 20
   cam: {fileID: 1154287580932441430}
   camRelativeMov: {x: 0, y: 0, z: 0}

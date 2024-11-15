@@ -27,8 +27,8 @@ public class Health : MonoBehaviour
     [PunRPC]
     public void TakeDamage(int damage)
     {
-        healthText.text = health.ToString();
         health -= damage;
+        healthText.text = health.ToString();
         Debug.Log("Hit");
         if(health <= 0)
         {

@@ -26,6 +26,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     [SerializeField] Transform cam;
 
     public Vector3 camRelativeMov;
+
     public Vector3 Movement { get; set; }
     public float JumpForce => _jumpForce;
     public float PlayerSpeed
@@ -88,16 +89,16 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
         bool isJumpPressed = Input.GetButtonDown("Jump");
         float jump = isJumpPressed ? _rb.velocity.y + JumpForce : _rb.velocity.y;
-        Movement = new Vector3(moveH * PlayerSpeed, jump, moveV * PlayerSpeed);
+        Movement = new Vector3(camRelativeMov.x * _playerSpeed, jump, camRelativeMov.z * _playerSpeed);
     }
-
 
     private void FixedUpdate()
     {
         if (photonView.IsMine)
         {
             // local player
-            transform.Translate(camRelativeMov, Space.World);
+            _rb.velocity = Movement;
+
         }
         else
         {

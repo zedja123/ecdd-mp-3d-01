@@ -8,6 +8,7 @@ public class Health : MonoBehaviour
 {
     
     public int health;
+    public bool isLocalPlayer;
 
     // Start is called before the first frame update
     void Start()
@@ -24,9 +25,15 @@ public class Health : MonoBehaviour
     [PunRPC]
     public void TakeDamage(int damage)
     {
-        health += damage;
+        health -= damage;
+        Debug.Log("Hit");
         if(health <= 0)
         {
+            if (isLocalPlayer)
+            {
+                GameManager.Instance.Respawn();
+            }
+
             Destroy(gameObject);
         }
     }

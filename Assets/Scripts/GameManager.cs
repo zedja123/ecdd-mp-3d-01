@@ -26,7 +26,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 
         if (PlayerController.LocalPlayerInstance == null)
         {
-            PhotonNetwork.Instantiate("Prefabs/" + playerPrefab.name, playerSpawnerPosition.position, Quaternion.identity);
+            GameObject _player = PhotonNetwork.Instantiate("Prefabs/" + playerPrefab.name, playerSpawnerPosition.position, Quaternion.identity);
         }
 
     }
@@ -35,5 +35,11 @@ public class GameManager : MonoBehaviourPunCallbacks
     void Update()
     {
         
+    }
+
+    public void Respawn()
+    {
+        GameObject _player = PhotonNetwork.Instantiate("Prefabs/" + playerPrefab.name, playerSpawnerPosition.position, Quaternion.identity);
+        _player.GetComponent<Health>().isLocalPlayer = true;
     }
 }

@@ -491,6 +491,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 100
+  isLocalPlayer: 0
 --- !u!114 &6342917098648051057
 MonoBehaviour:
   m_ObjectHideFlags: 0

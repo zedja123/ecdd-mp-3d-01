@@ -33,7 +33,6 @@ public class Health : MonoBehaviour
             {
                 GameManager.Instance.Respawn();
             }
-
             Destroy(gameObject);
         }
     }

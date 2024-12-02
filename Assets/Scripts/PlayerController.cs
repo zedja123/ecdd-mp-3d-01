@@ -5,6 +5,7 @@ using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 {
@@ -14,6 +15,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     public static GameObject LocalPlayerInstance;
     private Rigidbody _rb;
     private TMP_Text _namePlayer;
+    private GameObject _chat;
     [SerializeField] private float _jumpForce = 10f;
     [SerializeField] private float _playerSpeed = 10f;
     private Vector3 networkPosition;
@@ -83,8 +85,6 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         Vector3 rightRelativeV = moveH * right;
 
         camRelativeMov = forwardRelativeV + rightRelativeV;
-
-
 
 
         bool isJumpPressed = Input.GetButtonDown("Jump");

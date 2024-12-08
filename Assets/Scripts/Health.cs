@@ -24,7 +24,7 @@ public class Health : MonoBehaviour
         
     }
 
-    [PunRPC]
+    /*[PunRPC]
     public void TakeDamage(int damage)
     {
         health -= damage;
@@ -38,5 +38,5 @@ public class Health : MonoBehaviour
             }
             Destroy(gameObject);
         }
-    }
+    }*/
 }

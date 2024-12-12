@@ -98,10 +98,9 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     void Update()
     {
         float moveH = Input.GetAxis("Horizontal");
-        float moveV = Input.GetAxis("Vertical");
         bool isJumpPressed = Input.GetButtonDown("Jump");
         float jump = isJumpPressed ? _rb.velocity.y + JumpForce : _rb.velocity.y;
-        Movement = new Vector3(moveH * PlayerSpeed, jump, moveV * PlayerSpeed);
+        Movement = new Vector3(moveH * PlayerSpeed, jump, 0);
     }
 
 

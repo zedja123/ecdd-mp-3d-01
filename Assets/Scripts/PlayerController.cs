@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
+using UnityEditor.Tilemaps;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 {
@@ -12,13 +14,16 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
     public static PlayerController Instance;
     public static GameObject LocalPlayerInstance;
-    private Rigidbody _rb;
+    private Animator _anim;
+    private Rigidbody2D _rb;
     private TMP_Text _namePlayer;
     [SerializeField] private float _jumpForce = 10f;
     [SerializeField] private float _playerSpeed = 10f;
     private Vector3 networkPosition;
     private string _nickname;
+    private bool isFacingRight = true;
 
+    private float moveH;
     private int _localScore;
 
     public bool PodeMover { get; private set; }
@@ -53,40 +58,14 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     // Start is called before the first frame update
     void Start()
     {
-        _rb = GetComponent<Rigidbody>();
-        _namePlayer = GetComponentInChildren<TMP_Text>();
+        _rb = GetComponent<Rigidbody2D>();
+        _anim = GetComponent<Animator>();
 
         if (photonView.IsMine)
         {
             if (LocalPlayerInstance != null) { LocalPlayerInstance = this.gameObject; }
-            _nickname = PhotonNetwork.LocalPlayer.NickName;
-            var score = PhotonNetwork.LocalPlayer.CustomProperties["Score"];
-            _namePlayer.text = _nickname;
-            HabilitaMovimentacao(true);
-        }
-        else
-        {
-            _namePlayer.text = _nickname;
         }
 
-    }
-
-    [PunRPC]
-    public void UpdateScore(int quantidade)
-    {
-        int scoreAtual = 0;
-
-        if (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Score"))
-        {
-            scoreAtual = (int)PhotonNetwork.LocalPlayer.CustomProperties["Score"];
-        }
-
-        scoreAtual += quantidade;
-
-        // Atualizar essa pontuação nas propriedades customizadas do jogador
-        var tabela = new ExitGames.Client.Photon.Hashtable();
-        tabela.TryAdd("Score", scoreAtual);
-        PhotonNetwork.LocalPlayer.SetCustomProperties(tabela);
     }
 
     public override void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps)
@@ -97,10 +76,11 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     // Update is called once per frame
     void Update()
     {
-        float moveH = Input.GetAxis("Horizontal");
+        moveH = Input.GetAxis("Horizontal");
+        _anim.SetFloat("Velocity", Math.Abs(moveH));
         bool isJumpPressed = Input.GetButtonDown("Jump");
         float jump = isJumpPressed ? _rb.velocity.y + JumpForce : _rb.velocity.y;
-        Movement = new Vector3(moveH * PlayerSpeed, jump, 0);
+        Movement = new Vector2(moveH * PlayerSpeed, jump);
     }
 
 
@@ -109,15 +89,15 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         if (photonView.IsMine)
         {
             // local player
-            if (PodeMover)
-            {
-                _rb.velocity = Movement;
-            }
+            _rb.velocity = Movement;
+            Flip();
+            
         }
         else
         {
             // network player
             transform.position = Vector3.Lerp(transform.position, networkPosition, Time.deltaTime * 10);
+            Flip();
         }
     }
 
@@ -137,5 +117,16 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         }
 
 
+    }
+
+    private void Flip()
+    {
+        if (isFacingRight && moveH < 0f || !isFacingRight && moveH > 0f)
+        {
+            isFacingRight = !isFacingRight;
+            Vector3 localScale = transform.localScale;
+            localScale.x *= -1f;
+            transform.localScale = localScale;
+        }
     }
 }

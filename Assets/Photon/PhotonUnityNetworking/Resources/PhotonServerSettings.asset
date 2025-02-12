@@ -43,6 +43,9 @@ MonoBehaviour:
   - DestroiItem
   - UpdateScore
   - TocaAnimacao
+  - Flip
+  - Die
+  - TakeDamage
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

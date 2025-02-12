@@ -1,16 +1,21 @@
 using System;
+using System.Collections;
+
 //using System.Collections;
 using System.Collections.Generic;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEditor.Tilemaps;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 {
     #region Private Fields
+    public bool isHit;
     public static PlayerController Instance;
     public static GameObject LocalPlayerInstance;
     private Animator _anim;
@@ -22,9 +27,17 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     private string _nickname;
     private bool isFacingRight = true;
 
+    public bool invincible = false;
+
+    public Attack attack;
+
     private float moveH;
     private int _localScore;
 
+    public int maxHealth = 10;
+    [SerializeField] private int currentHealth;
+
+    [SerializeField] private float knockbackForce = 5f;
     public bool PodeMover { get; private set; }
 
     #endregion
@@ -59,10 +72,12 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     {
         _rb = GetComponent<Rigidbody2D>();
         _anim = GetComponent<Animator>();
+        currentHealth = maxHealth;
         if (photonView.IsMine)
         {
             if (LocalPlayerInstance != null) { LocalPlayerInstance = this.gameObject; }
             isFacingRight = true;
+            PodeMover = true;
         }
 
     }
@@ -75,10 +90,10 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     // Update is called once per frame
     void Update()
     {
-        
         bool isJumpPressed = Input.GetButtonDown("Jump");
         float jump = isJumpPressed ? _rb.velocity.y + JumpForce : _rb.velocity.y;
         Movement = new Vector2(moveH * PlayerSpeed, jump);
+        Animations();
     }
 
 
@@ -88,9 +103,12 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         {
             // local player
             moveH = Input.GetAxis("Horizontal");
-            _rb.velocity = Movement;
-            MovementAnimations();
+            if (PodeMover)
+            {
+                _rb.velocity = Movement;
+            }
             Flip();
+            
 
 
         }
@@ -119,7 +137,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
     }
 
-    [PunRPC]
+
     private void Flip()
     {
         if (isFacingRight && moveH < 0f || !isFacingRight && moveH > 0f)
@@ -131,8 +149,85 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
-    private void MovementAnimations()
+    private void Animations()
     {
         _anim.SetFloat("Velocity", Math.Abs(moveH));
+       if (Input.GetKeyDown(KeyCode.Z))
+        {
+            if (PodeMover)
+            {
+                _anim.SetTrigger("WeakA");
+                attack.damage = 1;
+                attack.hitStunDuration = 0.25f;
+            }
+                
+        }
+
+        if (Input.GetKeyDown(KeyCode.X))
+        {
+            if (PodeMover)
+            {
+                _anim.SetTrigger("StrongA");
+                attack.damage = 1;
+                attack.hitStunDuration = 0.5f;
+            }
+        }
+
+        if (isHit == true)
+        {
+            _anim.SetTrigger("Damaged");
+        }
     }
+
+    public void Hit(float duration)
+    {
+        if(!isHit)
+        {
+            StartCoroutine(HitCoroutine(duration));
+        }
+    }
+
+    private IEnumerator HitCoroutine(float duration)
+    {
+        isHit = true;
+        PodeMover = false;
+        yield return new WaitForSeconds(duration);
+
+        isHit = false;
+        PodeMover = true;
+    }
+
+    public void StopBoolAnimation(string name)
+    {
+        _anim.SetBool(name, false);
+    }
+
+    [PunRPC]
+    public void TakeDamage(int damage, Vector2 hitDirection, float hitStunDuration)
+    {
+        if(invincible) return;
+        Debug.Log("Hit");
+        currentHealth -= damage;
+        if (currentHealth <= 0)
+        {
+            Die();
+            return;
+        }
+
+        _anim.SetTrigger("Damaged");
+
+        _rb.velocity = new Vector2(hitDirection.x * knockbackForce, _rb.velocity.y);
+
+        StartCoroutine(HitCoroutine(hitStunDuration));
+    }
+
+    [PunRPC]
+    public void Die()
+    {
+        invincible = true;
+        PodeMover = false;
+        _anim.SetTrigger("Defeat");
+    }
+
+
 }

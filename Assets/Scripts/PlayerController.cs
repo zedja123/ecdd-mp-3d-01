@@ -11,7 +11,6 @@ using UnityEngine.EventSystems;
 public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 {
     #region Private Fields
-
     public static PlayerController Instance;
     public static GameObject LocalPlayerInstance;
     private Animator _anim;
@@ -60,10 +59,10 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     {
         _rb = GetComponent<Rigidbody2D>();
         _anim = GetComponent<Animator>();
-
         if (photonView.IsMine)
         {
             if (LocalPlayerInstance != null) { LocalPlayerInstance = this.gameObject; }
+            isFacingRight = true;
         }
 
     }
@@ -76,8 +75,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     // Update is called once per frame
     void Update()
     {
-        moveH = Input.GetAxis("Horizontal");
-        _anim.SetFloat("Velocity", Math.Abs(moveH));
+        
         bool isJumpPressed = Input.GetButtonDown("Jump");
         float jump = isJumpPressed ? _rb.velocity.y + JumpForce : _rb.velocity.y;
         Movement = new Vector2(moveH * PlayerSpeed, jump);
@@ -89,15 +87,17 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         if (photonView.IsMine)
         {
             // local player
+            moveH = Input.GetAxis("Horizontal");
             _rb.velocity = Movement;
+            MovementAnimations();
             Flip();
-            
+
+
         }
         else
         {
             // network player
             transform.position = Vector3.Lerp(transform.position, networkPosition, Time.deltaTime * 10);
-            Flip();
         }
     }
 
@@ -119,6 +119,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
     }
 
+    [PunRPC]
     private void Flip()
     {
         if (isFacingRight && moveH < 0f || !isFacingRight && moveH > 0f)
@@ -128,5 +129,10 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
             localScale.x *= -1f;
             transform.localScale = localScale;
         }
+    }
+
+    private void MovementAnimations()
+    {
+        _anim.SetFloat("Velocity", Math.Abs(moveH));
     }
 }

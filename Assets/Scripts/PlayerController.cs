@@ -94,6 +94,27 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         float jump = isJumpPressed ? _rb.velocity.y + JumpForce : _rb.velocity.y;
         Movement = new Vector2(moveH * PlayerSpeed, jump);
         Animations();
+
+
+        //INPUTS
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            if (PodeMover)
+            {
+                photonView.RPC("WeakAttack", RpcTarget.AllBuffered);
+            }
+
+        }
+
+        if (Input.GetKeyDown(KeyCode.X))
+        {
+            if (PodeMover)
+            {
+                photonView.RPC("StrongAttack", RpcTarget.AllBuffered);
+            }
+
+        }
+
     }
 
 
@@ -107,8 +128,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
             {
                 _rb.velocity = Movement;
             }
-            Flip();
-            
+            photonView.RPC("Flip", RpcTarget.AllBuffered);
+
 
 
         }
@@ -137,7 +158,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
     }
 
-
+    [PunRPC]
     private void Flip()
     {
         if (isFacingRight && moveH < 0f || !isFacingRight && moveH > 0f)
@@ -149,6 +170,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
+    [PunRPC]
     private void Animations()
     {
         _anim.SetFloat("Velocity", Math.Abs(moveH));
@@ -156,6 +178,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         {
             if (PodeMover)
             {
+                Debug.Log("PodeMover");
                 _anim.SetTrigger("WeakA");
                 attack.damage = 1;
                 attack.hitStunDuration = 0.25f;
@@ -173,10 +196,10 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
             }
         }
 
-        if (isHit == true)
-        {
-            _anim.SetTrigger("Damaged");
-        }
+        //if (isHit == true)
+        //{
+        //    _anim.SetTrigger("Damaged");
+        //}
     }
 
     public void Hit(float duration)
@@ -197,10 +220,6 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         PodeMover = true;
     }
 
-    public void StopBoolAnimation(string name)
-    {
-        _anim.SetBool(name, false);
-    }
 
     [PunRPC]
     public void TakeDamage(int damage, Vector2 hitDirection, float hitStunDuration)
@@ -216,7 +235,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
         _anim.SetTrigger("Damaged");
 
-        _rb.velocity = new Vector2(hitDirection.x * knockbackForce, _rb.velocity.y);
+        //_rb.velocity = new Vector2(hitDirection.x * knockbackForce, _rb.velocity.y);
 
         StartCoroutine(HitCoroutine(hitStunDuration));
     }
@@ -229,5 +248,19 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         _anim.SetTrigger("Defeat");
     }
 
+    [PunRPC]
+    public void WeakAttack()
+    {
+        _anim.SetTrigger("WeakA");
+        attack.damage = 1;
+        attack.hitStunDuration = 0.25f;
+    }
+        [PunRPC]
+    public void StrongAttack()
+    {
+        _anim.SetTrigger("StrongA");
+        attack.damage = 1;
+        attack.hitStunDuration = 0.50f;
+    }
 
 }

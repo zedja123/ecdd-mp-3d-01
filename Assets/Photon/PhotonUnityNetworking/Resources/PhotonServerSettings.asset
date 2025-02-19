@@ -46,6 +46,9 @@ MonoBehaviour:
   - Flip
   - Die
   - TakeDamage
+  - Animations
+  - StrongAttack
+  - WeakAttack
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

@@ -90,8 +90,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa2c971e630192f4cad98c7cdf1ef8af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 0
-  hitStunDuration: 0
+  damage: 1
+  hitStunDuration: 0.25
 --- !u!1 &7119176949621798014
 GameObject:
   m_ObjectHideFlags: 0
@@ -153,7 +153,6 @@ MonoBehaviour:
   observableSearch: 0
   ObservedComponents:
   - {fileID: 1977571074768863053}
-  - {fileID: 5266298766009637264}
   - {fileID: 3118593923507273090}
   - {fileID: 5363823261605994005}
   sceneViewId: 0

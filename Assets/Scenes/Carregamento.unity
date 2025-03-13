@@ -282,9 +282,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1263870050}
+      - m_Target: {fileID: 1263870049}
         m_TargetAssemblyTypeName: PlayFabLogin, Assembly-CSharp
-        m_MethodName: Login
+        m_MethodName: 
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3527,12 +3527,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 1263870049}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e0f916cd8143ab74bae854e51ca2a389, type: 3}
+  m_Script: {fileID: 11500000, guid: afa05a6497ed3524e867cd8d7f465139, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Nickname: 
+  EntityID: 
+  EntityType: 
   statusText: {fileID: 551337690}
-  userEmail: 
+  usernameOrEmail: 
   userPassword: 
   username: 
   inputUserEmailLogin: {fileID: 822847059}
@@ -4629,7 +4631,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1744181588
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5331,7 +5333,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1865028779
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5345,9 +5347,9 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 560766002}
-  - {fileID: 127279010}
-  - {fileID: 1129090616}
   - {fileID: 111744051}
+  - {fileID: 1129090616}
+  - {fileID: 127279010}
   - {fileID: 1188651777}
   - {fileID: 2089006174}
   - {fileID: 605790454}

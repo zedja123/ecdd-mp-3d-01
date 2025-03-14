@@ -10,7 +10,7 @@ public class CarregamentoEConexao : MonoBehaviourPunCallbacks
     [SerializeField] TMP_Text _txtInfo;
 
     // Start is called before the first frame update
-    public void Connect()
+    void Start()
     {
         // conecta no servido photon com as configurações predefinidas
         Debug.Log("Conectando...");

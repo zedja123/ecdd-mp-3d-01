@@ -201,6 +201,7 @@ CanvasRenderer:
   m_CullTransparentMesh: 1
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 --- !u!1 &85208476
 GameObject:
   m_ObjectHideFlags: 0
@@ -835,6 +836,8 @@ CanvasRenderer:
 >>>>>>> parent of e6024f3 (playfab+login)
 =======
 >>>>>>> parent of e6024f3 (playfab+login)
+=======
+>>>>>>> parent of e6024f3 (playfab+login)
 --- !u!1 &128062532
 GameObject:
   m_ObjectHideFlags: 0
@@ -1176,6 +1179,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 --- !u!1 &1129090615
@@ -2730,6 +2734,8 @@ CanvasRenderer:
 >>>>>>> parent of e6024f3 (playfab+login)
 =======
 >>>>>>> parent of e6024f3 (playfab+login)
+=======
+>>>>>>> parent of e6024f3 (playfab+login)
 --- !u!1 &1594368863
 GameObject:
   m_ObjectHideFlags: 0
@@ -2832,6 +2838,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 --- !u!1 &1674323677
@@ -3828,6 +3835,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Padding: {x: -8, y: -5, z: -8, w: -5}
   m_Softness: {x: 0, y: 0}
+=======
+>>>>>>> parent of e6024f3 (playfab+login)
 =======
 >>>>>>> parent of e6024f3 (playfab+login)
 =======

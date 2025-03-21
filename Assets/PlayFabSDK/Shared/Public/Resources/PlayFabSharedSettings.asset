@@ -15,7 +15,7 @@ MonoBehaviour:
   TitleId: 10028D
   DeveloperSecretKey: 
   ProductionEnvironmentUrl: 
-  RequestType: 1
+  RequestType: 0
   DisableDeviceInfo: 0
   DisableFocusTimeCollection: 0
   RequestTimeout: 2000

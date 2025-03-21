@@ -92,16 +92,20 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     {
         bool isJumpPressed = Input.GetButtonDown("Jump");
         float jump = isJumpPressed ? _rb.velocity.y + JumpForce : _rb.velocity.y;
-        Movement = new Vector2(moveH * PlayerSpeed, jump);
-        Animations();
-
+        photonView.RPC("MovementRPC", RpcTarget.All, jump);
+        if (photonView.IsMine)
+        {
+            photonView.RPC("MovementAnim", RpcTarget.All, moveH);
+        }
 
         //INPUTS
-        if (Input.GetKeyDown(KeyCode.Z))
+        if (photonView.IsMine)
+        {
+            if (Input.GetKeyDown(KeyCode.Z))
         {
             if (PodeMover)
             {
-                photonView.RPC("WeakAttack", RpcTarget.AllBuffered);
+                photonView.RPC("WeakAttack", RpcTarget.All);
             }
 
         }
@@ -110,11 +114,11 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         {
             if (PodeMover)
             {
-                photonView.RPC("StrongAttack", RpcTarget.AllBuffered);
+                photonView.RPC("StrongAttack", RpcTarget.All);
             }
 
         }
-
+        }
     }
 
 
@@ -128,7 +132,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
             {
                 _rb.velocity = Movement;
             }
-            photonView.RPC("Flip", RpcTarget.AllBuffered);
+            photonView.RPC("Flip", RpcTarget.All);
 
 
 
@@ -159,6 +163,11 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     }
 
     [PunRPC]
+    private void MovementRPC(float jump)
+    {
+        Movement = new Vector2(moveH * PlayerSpeed, jump);
+    }
+    [PunRPC]
     private void Flip()
     {
         if (isFacingRight && moveH < 0f || !isFacingRight && moveH > 0f)
@@ -171,35 +180,9 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     }
 
     [PunRPC]
-    private void Animations()
+    private void MovementAnim(float moveH)
     {
         _anim.SetFloat("Velocity", Math.Abs(moveH));
-       if (Input.GetKeyDown(KeyCode.Z))
-        {
-            if (PodeMover)
-            {
-                Debug.Log("PodeMover");
-                _anim.SetTrigger("WeakA");
-                attack.damage = 1;
-                attack.hitStunDuration = 0.25f;
-            }
-                
-        }
-
-        if (Input.GetKeyDown(KeyCode.X))
-        {
-            if (PodeMover)
-            {
-                _anim.SetTrigger("StrongA");
-                attack.damage = 1;
-                attack.hitStunDuration = 0.5f;
-            }
-        }
-
-        //if (isHit == true)
-        //{
-        //    _anim.SetTrigger("Damaged");
-        //}
     }
 
     public void Hit(float duration)
@@ -229,7 +212,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         currentHealth -= damage;
         if (currentHealth <= 0)
         {
-            Die();
+            photonView.RPC("Die", RpcTarget.All);
             return;
         }
 
@@ -244,8 +227,12 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     public void Die()
     {
         invincible = true;
-        PodeMover = false;
+        Debug.Log("Die invincibility");
+        HabilitaMovimentacao(false);
+        Debug.Log("Die movement");
         _anim.SetTrigger("Defeat");
+        _anim.SetBool("Alive", false);
+        Debug.Log("Die anim trigger");
     }
 
     [PunRPC]
@@ -255,7 +242,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         attack.damage = 1;
         attack.hitStunDuration = 0.25f;
     }
-        [PunRPC]
+    [PunRPC]
     public void StrongAttack()
     {
         _anim.SetTrigger("StrongA");

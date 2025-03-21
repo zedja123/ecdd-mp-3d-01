@@ -49,6 +49,7 @@ MonoBehaviour:
   - Animations
   - StrongAttack
   - WeakAttack
+  - MovementAnim
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

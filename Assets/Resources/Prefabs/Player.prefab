@@ -148,7 +148,7 @@ MonoBehaviour:
   ObservedComponentsFoldoutOpen: 1
   Group: 0
   prefixField: -1
-  Synchronization: 2
+  Synchronization: 3
   OwnershipTransfer: 0
   observableSearch: 0
   ObservedComponents:
@@ -351,7 +351,7 @@ MonoBehaviour:
     SynchronizeType: 2
     Name: Damaged
   - Type: 9
-    SynchronizeType: 0
+    SynchronizeType: 2
     Name: Defeat
   m_SynchronizeLayers:
   - SynchronizeType: 0

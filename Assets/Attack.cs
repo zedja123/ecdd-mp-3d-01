@@ -18,7 +18,7 @@ public class Attack : MonoBehaviour
                 Vector2 hitDirection = (transform.position - other.transform.position).normalized;
 
                 //player.TakeDamage(damage, hitDirection, hitStunDuration); // Sends damage and direction
-                player.photonView.RPC("TakeDamage", RpcTarget.AllBuffered, damage, hitDirection, hitStunDuration);
+                player.photonView.RPC("TakeDamage", RpcTarget.All, damage, hitDirection, hitStunDuration);
             }
         }
     }

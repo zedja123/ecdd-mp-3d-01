@@ -92,7 +92,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     {
         bool isJumpPressed = Input.GetButtonDown("Jump");
         float jump = isJumpPressed ? _rb.velocity.y + JumpForce : _rb.velocity.y;
-        photonView.RPC("MovementRPC", RpcTarget.All, jump);
+        Movement = new Vector2(moveH * PlayerSpeed, jump);
+
         if (photonView.IsMine)
         {
             photonView.RPC("MovementAnim", RpcTarget.All, moveH);

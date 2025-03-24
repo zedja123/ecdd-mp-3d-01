@@ -11,7 +11,7 @@ public class PlayFabMatchmaking : MonoBehaviour
 
     public string entityId;
     public string ticketId;
-    public string nomeFila = "mpecddqueue";
+    public string nomeFila = "queue";
     private IEnumerator coroutine;
 
     public string roomName;
@@ -50,13 +50,13 @@ public class PlayFabMatchmaking : MonoBehaviour
     {
         // captura o ticket token
         ticketId = result.TicketId;
-        
+
         // mensagem de status
         Debug.Log($"[Matchmaker] Ticket criado com sucesso: {ticketId}");
-        
+
         // inicializa a coroutine
         coroutine = WaitAndGetMatchmakingTicket(5.0f);
-        
+
         // ativa a rotina
         StartCoroutine(coroutine);
     }
@@ -154,8 +154,8 @@ public class PlayFabMatchmaking : MonoBehaviour
                 QueueName = nomeFila,
                 TicketId = ticketId,
             },
-            OnTicketCanceled, 
-            OnMatchmakingError); 
+            OnTicketCanceled,
+            OnMatchmakingError);
     }
 
     // callback de sucesso ao cancelar o ticket

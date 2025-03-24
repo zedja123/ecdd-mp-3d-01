@@ -8,11 +8,13 @@ using PlayFab.ClientModels;
 using TMPro;
 using Unity.VisualScripting;
 using ExitGames.Client.Photon;
+using Photon.Pun;
 
 public class PlayFabLogin : MonoBehaviour
 {
+    private static Dictionary<string, string> photonToPlayFabIdMap = new Dictionary<string, string>();
 
-    public static string PlayFabID;
+    public string PlayFabID;
     public string Nickname;
     public string EntityID;
     public string EntityType;
@@ -98,7 +100,7 @@ public class PlayFabLogin : MonoBehaviour
             userPassword = inputPassword.text;
 
             // payload da requisição
-            var request = new RegisterPlayFabUserRequest { Email = usernameOrEmail, Password = userPassword, Username = username };
+            var request = new RegisterPlayFabUserRequest { Email = usernameOrEmail, Password = userPassword, Username = username, DisplayName = username };
 
             // Requisição
             PlayFabClientAPI.RegisterPlayFabUser(request, SucessoCriarConta, FalhaCriarConta);

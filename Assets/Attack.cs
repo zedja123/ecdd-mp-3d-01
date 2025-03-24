@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Photon.Pun;
+using Photon.Realtime;
 using UnityEngine;
 
 public class Attack : MonoBehaviour
@@ -16,9 +17,9 @@ public class Attack : MonoBehaviour
             if (player != null)
             {
                 Vector2 hitDirection = (transform.position - other.transform.position).normalized;
-
                 //player.TakeDamage(damage, hitDirection, hitStunDuration); // Sends damage and direction
                 player.photonView.RPC("TakeDamage", RpcTarget.All, damage, hitDirection, hitStunDuration);
+
             }
         }
     }

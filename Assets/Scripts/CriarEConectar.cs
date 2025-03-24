@@ -8,6 +8,7 @@ using Photon.Realtime;
 using System;
 using Random = UnityEngine.Random;
 using WebSocketSharp;
+using UnityEditor.VersionControl;
 
 
 public class CriarEConectar : MonoBehaviourPunCallbacks
@@ -33,8 +34,20 @@ public class CriarEConectar : MonoBehaviourPunCallbacks
         _options.MaxPlayers = 2;
         _options.IsVisible = true;
         _options.IsOpen = true;
-
+        _options.PublishUserId = true;
         _nickname.text = PlayFabLogin.PFL.Nickname;
+
+
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyUp(KeyCode.Tab))
+        {
+            PlayFabLeaderboard PFLeaderboard = FindObjectOfType<PlayFabLeaderboard>();
+            PFLeaderboard.UpdateLeaderboard();
+            PFLeaderboard.RecuperarLeaderboard();
+        }
     }
 
     #endregion
@@ -79,7 +92,8 @@ public class CriarEConectar : MonoBehaviourPunCallbacks
         {
             PhotonNetwork.CreateRoom(nomeSala, _options);
         }
-        else { 
+        else
+        {
             PhotonNetwork.JoinRoom(nomeSala);
         }
 

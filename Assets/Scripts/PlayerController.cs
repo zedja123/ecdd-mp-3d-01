@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
-
+using PlayFab;
+using PlayFab.ClientModels;
 //using System.Collections;
 using System.Collections.Generic;
 using Photon.Pun;
@@ -14,6 +15,7 @@ using UnityEngine.SceneManagement;
 public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 {
     #region Private Fields
+    private bool isDead = false;
     public bool isHit;
     public static PlayerController Instance;
     public static GameObject LocalPlayerInstance;
@@ -203,7 +205,6 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         PodeMover = true;
     }
 
-
     [PunRPC]
     public void TakeDamage(int damage, Vector2 hitDirection, float hitStunDuration)
     {
@@ -212,6 +213,12 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         currentHealth -= damage;
         if (currentHealth <= 0)
         {
+            string playFabId = PhotonNetwork.LocalPlayer.UserId;
+            if (photonView.IsMine)
+            {
+                photonView.RPC("UpdateLeaderboard", RpcTarget.Others);
+            }
+                
             photonView.RPC("Die", RpcTarget.All);
             return;
         }
@@ -226,7 +233,10 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     public void Die()
     {
+        if (isDead) return; // Prevent multiple executions
+        isDead = true;
         invincible = true;
+
         Debug.Log("Die invincibility");
         HabilitaMovimentacao(false);
         Debug.Log("Die movement");
@@ -250,4 +260,34 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         attack.hitStunDuration = 0.50f;
     }
 
+
+    [PunRPC]
+    public void UpdateLeaderboard()
+    {
+        UpdatePlayerStatisticsRequest request = new UpdatePlayerStatisticsRequest
+        {
+            Statistics = new List<StatisticUpdate>
+            {
+                new StatisticUpdate
+                {
+
+                    StatisticName = "Kills",
+                    Value =+ 1
+                }
+            }
+        };
+
+        PlayFabClientAPI.UpdatePlayerStatistics(
+            request,
+            result =>
+            {
+                Debug.Log("[Playfab] Leaderboard foi atualizado!");
+            },
+            error =>
+            {
+                Debug.LogError($"[PlayFab] {error.GenerateErrorReport()}");
+            }
+        );
+    }
 }
+

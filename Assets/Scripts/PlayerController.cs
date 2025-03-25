@@ -11,10 +11,12 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 {
     #region Private Fields
+    public Image myHealthBar;
     public Transform groundCheck;  // Assign in Inspector (place it near player's feet)
     public LayerMask groundLayer;  // Assign this in Inspector to "Terrain"
     private bool isGrounded;
@@ -75,6 +77,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     // Start is called before the first frame update
     void Start()
     {
+        AssignHealthBar();
         _rb = GetComponent<Rigidbody2D>();
         _anim = GetComponent<Animator>();
         currentHealth = maxHealth;
@@ -136,6 +139,42 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
+    private void AssignHealthBar()
+    {
+        GameObject canvas = GameObject.Find("Canvas"); // Ensure the Canvas exists
+
+        if (photonView.IsMine)
+        {
+            // The local player should always see their health in "Player1HealthBar"
+            myHealthBar = canvas.transform.Find("Player1HealthBar")?.GetComponent<Image>();
+        }
+        else
+        {
+            // The remote player should always be linked to "Player2HealthBar"
+            myHealthBar = canvas.transform.Find("Player2HealthBar")?.GetComponent<Image>();
+        }
+
+        if (myHealthBar != null)
+        {
+            Debug.Log(photonView.Owner.NickName + " assigned " + myHealthBar.name);
+            UpdateHealthUI();
+        }
+        else
+        {
+            Debug.LogError("Health bar not found for " + photonView.Owner.NickName);
+        }
+    }
+
+    private void UpdateHealthUI()
+    {
+        Debug.Log("Current Health: " + currentHealth);
+        if (myHealthBar != null)
+        {
+            myHealthBar.fillAmount = currentHealth / maxHealth;
+            Debug.Log("Health fill amount: " + myHealthBar.fillAmount);
+        }
+    }
+
 
     private void FixedUpdate()
     {
@@ -153,8 +192,11 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
             {
                 _rb.velocity = new Vector2(Movement.x, _rb.velocity.y);
             }
-
-            photonView.RPC("Flip", RpcTarget.All);
+            if (PodeMover)
+            {
+                photonView.RPC("Flip", RpcTarget.All);
+            }
+            
         }
         else
         {
@@ -168,11 +210,14 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         {
             stream.SendNext((Vector3)transform.position);
             stream.SendNext(_nickname);
+            stream.SendNext(currentHealth);
         }
         else
         {
             networkPosition = (Vector3)stream.ReceiveNext();
             _nickname = (string)stream.ReceiveNext();
+            currentHealth = (int)stream.ReceiveNext();
+            UpdateHealthUI();
 
             //_namePlayer.text = _nickname;
         }
@@ -227,6 +272,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         if(invincible) return;
         Debug.Log("Hit");
         currentHealth -= damage;
+        UpdateHealthUI();
         if (currentHealth <= 0)
         {
             string playFabId = PhotonNetwork.LocalPlayer.UserId;

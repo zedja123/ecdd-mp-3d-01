@@ -202,6 +202,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fe907bc620c29c4ab416278ec502670, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  myHealthBar: {fileID: 0}
   groundCheck: {fileID: 4752428570117708918}
   groundLayer:
     serializedVersion: 2

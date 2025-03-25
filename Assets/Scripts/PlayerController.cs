@@ -15,6 +15,10 @@ using UnityEngine.SceneManagement;
 public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 {
     #region Private Fields
+    public Transform groundCheck;  // Assign in Inspector (place it near player's feet)
+    public LayerMask groundLayer;  // Assign this in Inspector to "Terrain"
+    private bool isGrounded;
+    private bool isJumpPressed;
     private bool isDead = false;
     public bool isHit;
     public static PlayerController Instance;
@@ -91,9 +95,18 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     // Update is called once per frame
     void Update()
     {
-        bool isJumpPressed = Input.GetButtonDown("Jump");
-        float jump = isJumpPressed ? _rb.velocity.y + JumpForce : _rb.velocity.y;
-        Movement = new Vector2(moveH * PlayerSpeed, jump);
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.1f, groundLayer);
+
+        if (photonView.IsMine)
+        {
+            moveH = Input.GetAxis("Horizontal");
+
+            // Only allow jumping if the player is on the ground
+            if (Input.GetButtonDown("Jump") && isGrounded)
+            {
+                isJumpPressed = true;
+            }
+        }
 
         if (photonView.IsMine)
         {
@@ -128,20 +141,23 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     {
         if (photonView.IsMine)
         {
-            // local player
-            moveH = Input.GetAxis("Horizontal");
+            Vector2 Movement = new Vector2(moveH * PlayerSpeed, _rb.velocity.y);
+
+            if (isJumpPressed && isGrounded) // Ensures jump only when grounded
+            {
+                _rb.velocity = new Vector2(_rb.velocity.x, JumpForce);
+                isJumpPressed = false; // Reset jump input
+            }
+
             if (PodeMover)
             {
-                _rb.velocity = Movement;
+                _rb.velocity = new Vector2(Movement.x, _rb.velocity.y);
             }
+
             photonView.RPC("Flip", RpcTarget.All);
-
-
-
         }
         else
         {
-            // network player
             transform.position = Vector3.Lerp(transform.position, networkPosition, Time.deltaTime * 10);
         }
     }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using PlayFab;
 using PlayFab.ClientModels;
@@ -120,58 +120,57 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         if (photonView.IsMine)
         {
             if (Input.GetKeyDown(KeyCode.Z))
-        {
-            if (PodeMover)
             {
-                photonView.RPC("WeakAttack", RpcTarget.All);
+                if (PodeMover)
+                {
+                    photonView.RPC("WeakAttack", RpcTarget.All);
+                }
+
             }
 
-        }
-
-        if (Input.GetKeyDown(KeyCode.X))
-        {
-            if (PodeMover)
+            if (Input.GetKeyDown(KeyCode.X))
             {
-                photonView.RPC("StrongAttack", RpcTarget.All);
-            }
+                if (PodeMover)
+                {
+                    photonView.RPC("StrongAttack", RpcTarget.All);
+                }
 
-        }
+            }
         }
     }
 
-    private void AssignHealthBar()
+    public void AssignHealthBar()
     {
         GameObject canvas = GameObject.Find("Canvas"); // Ensure the Canvas exists
 
-        if (photonView.IsMine)
+        // Assign health bar based on the owner's actor number (not the local player!)
+        if (photonView.Owner.ActorNumber == 1)
         {
-            // The local player should always see their health in "Player1HealthBar"
             myHealthBar = canvas.transform.Find("Player1HealthBar")?.GetComponent<Image>();
         }
         else
         {
-            // The remote player should always be linked to "Player2HealthBar"
             myHealthBar = canvas.transform.Find("Player2HealthBar")?.GetComponent<Image>();
         }
 
         if (myHealthBar != null)
         {
-            Debug.Log(photonView.Owner.NickName + " assigned " + myHealthBar.name);
-            UpdateHealthUI();
+            Debug.Log($"{photonView.Owner.NickName} assigned {myHealthBar.name}");
         }
         else
         {
-            Debug.LogError("Health bar not found for " + photonView.Owner.NickName);
+            Debug.LogError($"Health bar not found for {photonView.Owner.NickName}");
         }
     }
 
-    private void UpdateHealthUI()
+    [PunRPC]
+    public void UpdateHealthUI(int health)
     {
-        Debug.Log("Current Health: " + currentHealth);
         if (myHealthBar != null)
         {
-            myHealthBar.fillAmount = currentHealth / maxHealth;
-            Debug.Log("Health fill amount: " + myHealthBar.fillAmount);
+            float healthRatio = (float)health / maxHealth;
+            myHealthBar.fillAmount = healthRatio;
+            Debug.Log($"{photonView.Owner.NickName} updated health: {healthRatio}");
         }
     }
 
@@ -217,7 +216,6 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
             networkPosition = (Vector3)stream.ReceiveNext();
             _nickname = (string)stream.ReceiveNext();
             currentHealth = (int)stream.ReceiveNext();
-            UpdateHealthUI();
 
             //_namePlayer.text = _nickname;
         }
@@ -272,7 +270,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         if(invincible) return;
         Debug.Log("Hit");
         currentHealth -= damage;
-        UpdateHealthUI();
+        photonView.RPC("UpdateHealthUI", RpcTarget.All, currentHealth); // ✅ Send health data
         if (currentHealth <= 0)
         {
             string playFabId = PhotonNetwork.LocalPlayer.UserId;

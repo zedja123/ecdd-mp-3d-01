@@ -9,7 +9,9 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public static GameManager Instance;
     [SerializeField] GameObject playerPrefab;
-    [SerializeField] Transform playerSpawnerPosition;
+    [SerializeField] Transform spawnPoint1;
+    [SerializeField] Transform spawnPoint2;
+
 
     public void Awake()
     {
@@ -26,7 +28,8 @@ public class GameManager : MonoBehaviourPunCallbacks
 
         if (PlayerController.LocalPlayerInstance == null)
         {
-            PhotonNetwork.Instantiate("Prefabs/" + playerPrefab.name, playerSpawnerPosition.position, Quaternion.identity);
+            Transform spawnPosition = PhotonNetwork.IsMasterClient ? spawnPoint1 : spawnPoint2;
+            PhotonNetwork.Instantiate("Prefabs/" + playerPrefab.name, spawnPosition.position, Quaternion.identity);
         }
 
         var _listPlayer = PhotonNetwork.PlayerList;

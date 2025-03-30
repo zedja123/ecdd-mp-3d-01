@@ -2,7 +2,9 @@ using Photon.Pun;
 using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviourPunCallbacks
 {
@@ -11,7 +13,6 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] GameObject playerPrefab;
     [SerializeField] Transform spawnPoint1;
     [SerializeField] Transform spawnPoint2;
-
 
     public void Awake()
     {
@@ -47,5 +48,23 @@ public class GameManager : MonoBehaviourPunCallbacks
         //{
         //    Debug.Log(player.NickName + ": " + player.CustomProperties["Score"]);
         //}
+    }
+
+    public void GameOver()
+    {
+        StartCoroutine(LeaveRoomAndLoadScene(10));
+    }
+
+    private IEnumerator LeaveRoomAndLoadScene(float wait)
+    {
+        yield return new WaitForSeconds(wait);
+        photonView.RPC("LeaveRoom", RpcTarget.All);
+    }
+
+    [PunRPC]
+    public void LeaveRoom()
+    {
+        PhotonNetwork.LeaveRoom();
+        SceneManager.LoadScene("CreateGame");
     }
 }

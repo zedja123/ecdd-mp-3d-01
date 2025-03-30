@@ -35,7 +35,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     private bool isFacingRight = true;
 
     public bool invincible = false;
-
+    public GameManager gm;
     public Attack attack;
 
     private float moveH;
@@ -71,6 +71,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     {
         Debug.Log($"[Photon] Player Start. ViewID: {photonView.ViewID} | IsMine: {photonView.IsMine}");
         AssignHealthBar();
+        gm = GameObject.Find("GameManager")?.GetComponent<GameManager>();
         _rb = GetComponent<Rigidbody2D>();
         _anim = GetComponent<Animator>();
         currentHealth = maxHealth;
@@ -319,7 +320,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 {
     // Get the current stats (Kills, Deaths, KD) for the player who killed
     GetPlayerStatisticsRequest statsRequest = new GetPlayerStatisticsRequest();
-
+        int rewardAmount = 100;
     PlayFabClientAPI.GetPlayerStatistics(
         statsRequest,
         statsResult =>
@@ -344,7 +345,15 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
             int newKills = currentKills + 1;
 
             // Calculate the new KD for the killer
-            int newKD = (currentDeaths == 0) ? newKills : newKills / currentDeaths;  // Avoid division by zero
+            float newKD = (currentDeaths > 0) ? (newKills / (float)currentDeaths) : newKills;
+
+                       // Check if the player's kills are a multiple of 2 (and greater than 0)
+                        if (newKills > 0 && newKills % 2 == 0)
+                        {
+                            // Grant virtual currency (100 Battle Coins) for each multiple of 2 kills
+                            GrantCurrencyReward("BC", rewardAmount);
+                            Debug.Log($"[PlayFab] Player rewarded with {rewardAmount} BC for reaching {newKills} kills.");
+                        }
 
             // Now update the killer's statistics (Kills, Deaths, and KD)
             UpdatePlayerStatisticsRequest updateRequest = new UpdatePlayerStatisticsRequest
@@ -359,7 +368,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
                     new StatisticUpdate
                     {
                         StatisticName = "KD",
-                        Value = newKD * 100  // Scaling KD for better precision
+                        Value = (int)Math.Round(newKD * 100)  // Scaling KD for better precision
                     }
                 }
             };
@@ -413,7 +422,7 @@ private void UpdatePlayerStatsForDeadPlayer()
             int newDeaths = currentDeaths + 1;
 
             // Calculate the new KD for the dead player
-            int newKD = (newDeaths == 0) ? currentKills : currentKills / newDeaths;  // Avoid division by zero
+            float newKD = (currentDeaths > 0) ? (newDeaths / (float)currentDeaths) : newDeaths;  // Avoid division by zero
 
             // Now update the dead player's statistics (Kills, Deaths, and KD)
             UpdatePlayerStatisticsRequest updateRequest = new UpdatePlayerStatisticsRequest
@@ -428,7 +437,7 @@ private void UpdatePlayerStatsForDeadPlayer()
                     new StatisticUpdate
                     {
                         StatisticName = "KD",
-                        Value = newKD * 100 // Scaling KD for better precision
+                        Value = (int)Math.Round(newKD * 100) // Scaling KD for better precision
                     }
                 }
             };
@@ -464,6 +473,7 @@ private void UpdatePlayerStatsForDeadPlayer()
         _anim.SetTrigger("Defeat");
         _anim.SetBool("Alive", false);
         Debug.Log("Die anim trigger");
+        gm.GameOver();
     }
 
     [PunRPC]
@@ -548,21 +558,21 @@ private void UpdatePlayerStatsForDeadPlayer()
     //    );
     //}
 
-    //public void GrantCurrencyReward(string currencyCode, int amount)
-    //{
-    //    // Grant virtual currency (e.g., BC = Battle Coins)
-    //    AddUserVirtualCurrencyRequest currencyRequest = new AddUserVirtualCurrencyRequest
-    //    {
-    //        VirtualCurrency = currencyCode,
-    //        Amount = amount
-    //    };
+    public void GrantCurrencyReward(string currencyCode, int amount)
+    {
+        // Grant virtual currency (e.g., BC = Battle Coins)
+        AddUserVirtualCurrencyRequest currencyRequest = new AddUserVirtualCurrencyRequest
+        {
+            VirtualCurrency = currencyCode,
+            Amount = amount
+        };
 
-    //    PlayFabClientAPI.AddUserVirtualCurrency(
-    //        currencyRequest,
-    //        result => { Debug.Log($"[PlayFab] {currencyCode} granted: {amount}"); },
-    //        error => { Debug.LogError($"[PlayFab] {error.GenerateErrorReport()}"); }
-    //    );
-    //}
+        PlayFabClientAPI.AddUserVirtualCurrency(
+            currencyRequest,
+            result => { Debug.Log($"[PlayFab] {currencyCode} granted: {amount}"); },
+            error => { Debug.LogError($"[PlayFab] {error.GenerateErrorReport()}"); }
+        );
+    }
     public void OnPhotonInstantiate(PhotonMessageInfo info)
     {
         if (photonView.IsMine)

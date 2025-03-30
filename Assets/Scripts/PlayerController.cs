@@ -66,24 +66,17 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         PodeMover = mover;
     }
 
-    private void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-    }
-
     // Start is called before the first frame update
     void Start()
     {
+        Debug.Log($"[Photon] Player Start. ViewID: {photonView.ViewID} | IsMine: {photonView.IsMine}");
         AssignHealthBar();
         _rb = GetComponent<Rigidbody2D>();
         _anim = GetComponent<Animator>();
         currentHealth = maxHealth;
+
         if (photonView.IsMine)
         {
-            if (LocalPlayerInstance != null) { LocalPlayerInstance = this.gameObject; }
             isFacingRight = true;
             PodeMover = true;
         }
@@ -312,13 +305,14 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     {
         if (photonView.IsMine)
         {
-            // Get the player who killed (the player who called this RPC)
-            UpdatePlayerStatsForKiller();
-        }
-        else
-        {
             // Get the player who died (the other player)
             UpdatePlayerStatsForDeadPlayer();
+        }
+        else
+        {   
+            // Get the player who killed (the player who called this RPC)
+            UpdatePlayerStatsForKiller();
+
         }
     }
     private void UpdatePlayerStatsForKiller()
@@ -365,7 +359,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
                     new StatisticUpdate
                     {
                         StatisticName = "KD",
-                        Value = newKD // Scaling KD for better precision
+                        Value = newKD * 100  // Scaling KD for better precision
                     }
                 }
             };
@@ -434,7 +428,7 @@ private void UpdatePlayerStatsForDeadPlayer()
                     new StatisticUpdate
                     {
                         StatisticName = "KD",
-                        Value = newKD // Scaling KD for better precision
+                        Value = newKD * 100 // Scaling KD for better precision
                     }
                 }
             };
@@ -492,7 +486,7 @@ private void UpdatePlayerStatsForDeadPlayer()
     //public void UpdateLeaderboardAndKD()
     //{
     //    int rewardAmount = 100; // Reward amount (BC) for each multiple of 2 kills
-            
+
     //    // Request to get the player's statistics (e.g., kills)
     //    GetPlayerStatisticsRequest statsRequest = new GetPlayerStatisticsRequest();
 
@@ -569,5 +563,16 @@ private void UpdatePlayerStatsForDeadPlayer()
     //        error => { Debug.LogError($"[PlayFab] {error.GenerateErrorReport()}"); }
     //    );
     //}
+    public void OnPhotonInstantiate(PhotonMessageInfo info)
+    {
+        if (photonView.IsMine)
+        {
+            Debug.Log("[Photon] This player controls this instance.");
+        }
+        else
+        {
+            Debug.Log("[Photon] This instance is controlled by another player.");
+        }
+    }
 }
 

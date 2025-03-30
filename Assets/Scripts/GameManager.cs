@@ -26,20 +26,18 @@ public class GameManager : MonoBehaviourPunCallbacks
     void Start()
     {
 
+        if (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Spawned")) return;
         if (PlayerController.LocalPlayerInstance == null)
         {
             Transform spawnPosition = PhotonNetwork.IsMasterClient ? spawnPoint1 : spawnPoint2;
-            PhotonNetwork.Instantiate("Prefabs/" + playerPrefab.name, spawnPosition.position, Quaternion.identity);
+            GameObject player = PhotonNetwork.Instantiate("Prefabs/" + playerPrefab.name, spawnPosition.position, Quaternion.identity);
+
+            // Mark this player as spawned to prevent duplicates
+            PhotonNetwork.LocalPlayer.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "Spawned", true } });
+
+            Debug.Log($"[Photon] Instantiated Player: {player.name} | ViewID: {player.GetComponent<PhotonView>().ViewID} | IsMine: {player.GetComponent<PhotonView>().IsMine}");
         }
-
-        var _listPlayer = PhotonNetwork.PlayerList;
-
-        foreach (var player in _listPlayer)
-        {
-            Debug.Log(player.NickName);
-        }
-
-
+ 
     }
 
     // Update is called once per frame

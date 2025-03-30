@@ -273,13 +273,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         photonView.RPC("UpdateHealthUI", RpcTarget.All, currentHealth); // ✅ Send health data
         if (currentHealth <= 0)
         {
-            string playFabId = PhotonNetwork.LocalPlayer.UserId;
-            if (photonView.IsMine)
-            {
-                photonView.RPC("UpdateLeaderboard", RpcTarget.Others);
-            }
-                
-            photonView.RPC("Die", RpcTarget.All);
+            // This player is dead, check who killed them
+            HandlePlayerDeath();
             return;
         }
 
@@ -290,13 +285,185 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         StartCoroutine(HitCoroutine(hitStunDuration));
     }
 
+    private void HandlePlayerDeath()
+    {
+        // Check if the player is dead
+        if (currentHealth <= 0)
+        {
+            // The player is dead. Handle death logic.
+            string playerID = PhotonNetwork.LocalPlayer.UserId; // Get the player's ID (use for logging or other logic)
+            Debug.Log($"{playerID} is dead");
+
+            // Trigger death animations, invincibility, disable movement, etc.
+            Die();
+
+            // Update the killer’s stats (if applicable)
+            // This logic would depend on how the game identifies the killer.
+            if (photonView.IsMine)
+            {
+                // The player calling this function is the one who killed someone
+                photonView.RPC("UpdateStatsAfterKill", RpcTarget.All);
+            }
+        }
+    }
+
+    [PunRPC]
+    public void UpdateStatsAfterKill()
+    {
+        if (photonView.IsMine)
+        {
+            // Get the player who killed (the player who called this RPC)
+            UpdatePlayerStatsForKiller();
+        }
+        else
+        {
+            // Get the player who died (the other player)
+            UpdatePlayerStatsForDeadPlayer();
+        }
+    }
+    private void UpdatePlayerStatsForKiller()
+{
+    // Get the current stats (Kills, Deaths, KD) for the player who killed
+    GetPlayerStatisticsRequest statsRequest = new GetPlayerStatisticsRequest();
+
+    PlayFabClientAPI.GetPlayerStatistics(
+        statsRequest,
+        statsResult =>
+        {
+            int currentKills = 0;
+            int currentDeaths = 0;
+
+            // Check the player's current statistics (Kills, Deaths)
+            foreach (var stat in statsResult.Statistics)
+            {
+                if (stat.StatisticName == "Kills")
+                {
+                    currentKills = stat.Value;
+                }
+                else if (stat.StatisticName == "Deaths")
+                {
+                    currentDeaths = stat.Value;
+                }
+            }
+
+            // Increment Kills for the killer
+            int newKills = currentKills + 1;
+
+            // Calculate the new KD for the killer
+            int newKD = (currentDeaths == 0) ? newKills : newKills / currentDeaths;  // Avoid division by zero
+
+            // Now update the killer's statistics (Kills, Deaths, and KD)
+            UpdatePlayerStatisticsRequest updateRequest = new UpdatePlayerStatisticsRequest
+            {
+                Statistics = new List<StatisticUpdate>
+                {
+                    new StatisticUpdate
+                    {
+                        StatisticName = "Kills",
+                        Value = newKills
+                    },
+                    new StatisticUpdate
+                    {
+                        StatisticName = "KD",
+                        Value = newKD // Scaling KD for better precision
+                    }
+                }
+            };
+
+            // Update the player's stats on PlayFab
+            PlayFabClientAPI.UpdatePlayerStatistics(
+                updateRequest,
+                result => 
+                {
+                    Debug.Log("[PlayFab] Killer's statistics updated!");
+                },
+                error => 
+                {
+                    Debug.LogError($"[PlayFab] Error updating killer's statistics: {error.GenerateErrorReport()}");
+                }
+            );
+        },
+        error =>
+        {
+            Debug.LogError($"[PlayFab] Error getting killer's statistics: {error.GenerateErrorReport()}");
+        }
+    );
+}
+
+private void UpdatePlayerStatsForDeadPlayer()
+{
+    // Get the current stats (Kills, Deaths, KD) for the player who died
+    GetPlayerStatisticsRequest statsRequest = new GetPlayerStatisticsRequest();
+
+    PlayFabClientAPI.GetPlayerStatistics(
+        statsRequest,
+        statsResult =>
+        {
+            int currentKills = 0;
+            int currentDeaths = 0;
+
+            // Check the player's current statistics (Kills, Deaths)
+            foreach (var stat in statsResult.Statistics)
+            {
+                if (stat.StatisticName == "Kills")
+                {
+                    currentKills = stat.Value;
+                }
+                else if (stat.StatisticName == "Deaths")
+                {
+                    currentDeaths = stat.Value;
+                }
+            }
+
+            // Increment Deaths for the player who died
+            int newDeaths = currentDeaths + 1;
+
+            // Calculate the new KD for the dead player
+            int newKD = (newDeaths == 0) ? currentKills : currentKills / newDeaths;  // Avoid division by zero
+
+            // Now update the dead player's statistics (Kills, Deaths, and KD)
+            UpdatePlayerStatisticsRequest updateRequest = new UpdatePlayerStatisticsRequest
+            {
+                Statistics = new List<StatisticUpdate>
+                {
+                    new StatisticUpdate
+                    {
+                        StatisticName = "Deaths",
+                        Value = newDeaths
+                    },
+                    new StatisticUpdate
+                    {
+                        StatisticName = "KD",
+                        Value = newKD // Scaling KD for better precision
+                    }
+                }
+            };
+
+            // Update the player's stats on PlayFab
+            PlayFabClientAPI.UpdatePlayerStatistics(
+                updateRequest,
+                result => 
+                {
+                    Debug.Log("[PlayFab] Dead player's statistics updated!");
+                },
+                error => 
+                {
+                    Debug.LogError($"[PlayFab] Error updating dead player's statistics: {error.GenerateErrorReport()}");
+                }
+            );
+        },
+        error =>
+        {
+            Debug.LogError($"[PlayFab] Error getting dead player's statistics: {error.GenerateErrorReport()}");
+        }
+    );
+}
     [PunRPC]
     public void Die()
     {
         if (isDead) return; // Prevent multiple executions
         isDead = true;
         invincible = true;
-
         Debug.Log("Die invincibility");
         HabilitaMovimentacao(false);
         Debug.Log("Die movement");
@@ -321,33 +488,86 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     }
 
 
-    [PunRPC]
-    public void UpdateLeaderboard()
-    {
-        UpdatePlayerStatisticsRequest request = new UpdatePlayerStatisticsRequest
-        {
-            Statistics = new List<StatisticUpdate>
-            {
-                new StatisticUpdate
-                {
+    //[PunRPC]
+    //public void UpdateLeaderboardAndKD()
+    //{
+    //    int rewardAmount = 100; // Reward amount (BC) for each multiple of 2 kills
+            
+    //    // Request to get the player's statistics (e.g., kills)
+    //    GetPlayerStatisticsRequest statsRequest = new GetPlayerStatisticsRequest();
 
-                    StatisticName = "Kills",
-                    Value =+ 1
-                }
-            }
-        };
+    //    PlayFabClientAPI.GetPlayerStatistics(
+    //        statsRequest,
+    //        statsResult =>
+    //        {
+    //            int currentKills = 0;
 
-        PlayFabClientAPI.UpdatePlayerStatistics(
-            request,
-            result =>
-            {
-                Debug.Log("[Playfab] Leaderboard foi atualizado!");
-            },
-            error =>
-            {
-                Debug.LogError($"[PlayFab] {error.GenerateErrorReport()}");
-            }
-        );
-    }
+    //            // Check the player's current kills from the statistics
+    //            foreach (var stat in statsResult.Statistics)
+    //            {
+    //                if (stat.StatisticName == "Kills")
+    //                {
+    //                    currentKills = stat.Value;
+    //                    break;
+    //                }
+    //            }
+
+    //            Debug.Log($"[PlayFab] Player's current kills: {currentKills}");
+
+    //            // Increment the kill count by 1 (adding 1 to currentKills)
+    //            int newKills = currentKills + 1;
+
+    //            // Check if the player's kills are a multiple of 2 (and greater than 0)
+    //            if (newKills > 0 && newKills % 2 == 0)
+    //            {
+    //                // Grant virtual currency (100 Battle Coins) for each multiple of 2 kills
+    //                GrantCurrencyReward("BC", rewardAmount);
+    //                Debug.Log($"[PlayFab] Player rewarded with {rewardAmount} BC for reaching {newKills} kills.");
+    //            }
+
+    //            // Now update the leaderboard with the incremented Kills value (currentKills + 1)
+    //            UpdatePlayerStatisticsRequest request = new UpdatePlayerStatisticsRequest
+    //            {
+    //                Statistics = new List<StatisticUpdate>
+    //                {
+    //                new StatisticUpdate
+    //                {
+    //                    StatisticName = "Kills",
+    //                    Value = 1 // We are adding 1 to the current value in PlayFab automatically.
+    //                },
+    //                new StatisticUpdate
+    //                {
+    //                    StatisticName = "KD",
+    //                    Value = 1 // We are adding 1 to the current value in PlayFab automatically.
+    //                }
+    //                }
+    //            };
+
+    //            // Update the player's statistics (leaderboard)
+    //            PlayFabClientAPI.UpdatePlayerStatistics(
+    //                request,
+    //                result => { Debug.Log("[PlayFab] Leaderboard updated! For Killer"); },
+    //                error => { Debug.LogError($"[PlayFab] {error.GenerateErrorReport()}"); }
+    //            );
+    //        },
+    //        error => { Debug.LogError($"[PlayFab] {error.GenerateErrorReport()}"); }
+    //    );
+    //}
+
+    //public void GrantCurrencyReward(string currencyCode, int amount)
+    //{
+    //    // Grant virtual currency (e.g., BC = Battle Coins)
+    //    AddUserVirtualCurrencyRequest currencyRequest = new AddUserVirtualCurrencyRequest
+    //    {
+    //        VirtualCurrency = currencyCode,
+    //        Amount = amount
+    //    };
+
+    //    PlayFabClientAPI.AddUserVirtualCurrency(
+    //        currencyRequest,
+    //        result => { Debug.Log($"[PlayFab] {currencyCode} granted: {amount}"); },
+    //        error => { Debug.LogError($"[PlayFab] {error.GenerateErrorReport()}"); }
+    //    );
+    //}
 }
 

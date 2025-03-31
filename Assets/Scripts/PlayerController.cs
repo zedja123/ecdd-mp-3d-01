@@ -369,6 +369,11 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
                     },
                     new StatisticUpdate
                     {
+                        StatisticName = "Deaths",
+                        Value = currentDeaths
+                    },
+                    new StatisticUpdate
+                    {
                         StatisticName = "KD",
                         Value = (int)Math.Round(newKD * 100)  // Scaling KD for better precision
                     }
@@ -424,7 +429,7 @@ private void UpdatePlayerStatsForDeadPlayer()
             int newDeaths = currentDeaths + 1;
 
             // Calculate the new KD for the dead player
-            float newKD = (currentDeaths > 0) ? (newDeaths / (float)currentDeaths) : 0;  // Avoid division by zero
+            float newKD = (currentKills > 0) ? (currentKills / (float)newDeaths) : 0;  // Avoid division by zero
 
 
             GrantCurrencyReward("BC", deathAmount);
@@ -439,6 +444,11 @@ private void UpdatePlayerStatsForDeadPlayer()
                     {
                         StatisticName = "Deaths",
                         Value = newDeaths
+                    },
+                    new StatisticUpdate
+                    {
+                        StatisticName = "Kills",
+                        Value = currentKills
                     },
                     new StatisticUpdate
                     {

@@ -27,7 +27,6 @@ public class GameManager : MonoBehaviourPunCallbacks
     void Start()
     {
 
-        if (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Spawned")) return;
         if (PlayerController.LocalPlayerInstance == null)
         {
             Transform spawnPosition = PhotonNetwork.IsMasterClient ? spawnPoint1 : spawnPoint2;
@@ -58,13 +57,26 @@ public class GameManager : MonoBehaviourPunCallbacks
     private IEnumerator LeaveRoomAndLoadScene(float wait)
     {
         yield return new WaitForSeconds(wait);
-        photonView.RPC("LeaveRoom", RpcTarget.All);
+        if (PhotonNetwork.NetworkClientState != ClientState.Leaving)
+        {
+            photonView.RPC("LeaveRoom", RpcTarget.All);
+        }
+        else
+        {
+            Debug.LogWarning("Client is already leaving the room.");
+        }
     }
 
     [PunRPC]
     public void LeaveRoom()
     {
         PhotonNetwork.LeaveRoom();
+    }
+
+    public override void OnLeftRoom()
+    {
         SceneManager.LoadScene("CreateGame");
+
+        base.OnLeftRoom();
     }
 }

@@ -424,7 +424,7 @@ private void UpdatePlayerStatsForDeadPlayer()
             int newDeaths = currentDeaths + 1;
 
             // Calculate the new KD for the dead player
-            float newKD = (currentDeaths > 0) ? (newDeaths / (float)currentDeaths) : newDeaths;  // Avoid division by zero
+            float newKD = (currentDeaths > 0) ? (newDeaths / (float)currentDeaths) : 0;  // Avoid division by zero
 
 
             GrantCurrencyReward("BC", deathAmount);

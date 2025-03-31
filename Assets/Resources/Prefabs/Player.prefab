@@ -211,6 +211,7 @@ MonoBehaviour:
   _jumpForce: 15
   _playerSpeed: 10
   invincible: 0
+  gm: {fileID: 0}
   attack: {fileID: 5247950037193347899}
   maxHealth: 10
   currentHealth: 0

@@ -321,6 +321,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     // Get the current stats (Kills, Deaths, KD) for the player who killed
     GetPlayerStatisticsRequest statsRequest = new GetPlayerStatisticsRequest();
         int rewardAmount = 100;
+        int killAmount = 50;
     PlayFabClientAPI.GetPlayerStatistics(
         statsRequest,
         statsResult =>
@@ -354,6 +355,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
                             GrantCurrencyReward("BC", rewardAmount);
                             Debug.Log($"[PlayFab] Player rewarded with {rewardAmount} BC for reaching {newKills} kills.");
                         }
+            GrantCurrencyReward("BC", killAmount);
 
             // Now update the killer's statistics (Kills, Deaths, and KD)
             UpdatePlayerStatisticsRequest updateRequest = new UpdatePlayerStatisticsRequest
@@ -397,8 +399,8 @@ private void UpdatePlayerStatsForDeadPlayer()
 {
     // Get the current stats (Kills, Deaths, KD) for the player who died
     GetPlayerStatisticsRequest statsRequest = new GetPlayerStatisticsRequest();
-
-    PlayFabClientAPI.GetPlayerStatistics(
+        int deathAmount = 25;
+        PlayFabClientAPI.GetPlayerStatistics(
         statsRequest,
         statsResult =>
         {
@@ -423,6 +425,10 @@ private void UpdatePlayerStatsForDeadPlayer()
 
             // Calculate the new KD for the dead player
             float newKD = (currentDeaths > 0) ? (newDeaths / (float)currentDeaths) : newDeaths;  // Avoid division by zero
+
+
+            GrantCurrencyReward("BC", deathAmount);
+
 
             // Now update the dead player's statistics (Kills, Deaths, and KD)
             UpdatePlayerStatisticsRequest updateRequest = new UpdatePlayerStatisticsRequest

@@ -13,6 +13,11 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] GameObject playerPrefab;
     [SerializeField] Transform spawnPoint1;
     [SerializeField] Transform spawnPoint2;
+    [SerializeField] SpriteRenderer background;
+    [SerializeField] Texture2D floresta;
+    [SerializeField] Texture2D vila;
+    [SerializeField] Texture2D castelo;
+
 
     public void Awake()
     {
@@ -26,7 +31,10 @@ public class GameManager : MonoBehaviourPunCallbacks
     // Start is called before the first frame update
     void Start()
     {
+        playerPrefab = PlayFabLogin.PFL.selectedChar;
 
+        photonView.RPC("ApplyRandomBackground", RpcTarget.All);
+        
         if (PlayerController.LocalPlayerInstance == null)
         {
             Transform spawnPosition = PhotonNetwork.IsMasterClient ? spawnPoint1 : spawnPoint2;
@@ -78,5 +86,23 @@ public class GameManager : MonoBehaviourPunCallbacks
         SceneManager.LoadScene("CreateGame");
 
         base.OnLeftRoom();
+    }
+
+    [PunRPC]
+    private void ApplyRandomBackground()
+    {
+        Texture2D selectedTexture = GetRandomTexture();
+        background.sprite = TextureToSprite(selectedTexture);
+    }
+
+    private Texture2D GetRandomTexture()
+    {
+        Texture2D[] textures = { floresta, vila, castelo };
+        return textures[Random.Range(0, textures.Length)];
+    }
+
+    private Sprite TextureToSprite(Texture2D texture)
+    {
+        return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
     }
 }

@@ -12,6 +12,8 @@ using Photon.Pun;
 
 public class PlayFabLogin : MonoBehaviour
 {
+
+    public GameObject selectedChar;
     private static Dictionary<string, string> photonToPlayFabIdMap = new Dictionary<string, string>();
 
     public string PlayFabID;

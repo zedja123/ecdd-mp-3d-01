@@ -812,6 +812,10 @@ MonoBehaviour:
   playerPrefab: {fileID: 7119176949621798014, guid: 1a0a619c225aac64aa46f68c6b27583e, type: 3}
   spawnPoint1: {fileID: 1497064039}
   spawnPoint2: {fileID: 1316398798}
+  background: {fileID: 1863810679}
+  floresta: {fileID: 2800000, guid: 14e21e3c285adc14da18650e68a92ba9, type: 3}
+  vila: {fileID: 2800000, guid: e7efb830cc259c4489060524161825e1, type: 3}
+  castelo: {fileID: 2800000, guid: 052e285eaf09b004da1339ed3cfa2515, type: 3}
 --- !u!4 &546590410
 Transform:
   m_ObjectHideFlags: 0

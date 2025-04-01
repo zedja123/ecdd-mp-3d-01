@@ -136,5 +136,10 @@ public class CriarEConectar : MonoBehaviourPunCallbacks
         PhotonNetwork.JoinRoom(nomeSala);
     }
 
+    public void  SelectChar(GameObject character)
+    {
+        PlayFabLogin.PFL.selectedChar = character;
+    }
+
     #endregion
 }

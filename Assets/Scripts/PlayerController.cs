@@ -35,10 +35,12 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     private bool isFacingRight = true;
 
     public bool invincible = false;
+    private bool agachado;
     public GameManager gm;
     public Attack attack;
 
     private float moveH;
+    private float moveV;
     private int _localScore;
 
     public int maxHealth = 10;
@@ -97,6 +99,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         if (photonView.IsMine)
         {
             moveH = Input.GetAxis("Horizontal");
+            moveV = Input.GetAxis("Vertical");
 
             // Only allow jumping if the player is on the ground
             if (Input.GetButtonDown("Jump") && isGrounded)
@@ -115,21 +118,44 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         {
             if (Input.GetKeyDown(KeyCode.Z))
             {
-                if (PodeMover)
+                if (PodeMover && isGrounded)
                 {
                     photonView.RPC("WeakAttack", RpcTarget.All);
+                }
+                else if(PodeMover && !isGrounded)
+                {
+
+                }
+                else if(agachado && isGrounded)
+                {
+
                 }
 
             }
 
             if (Input.GetKeyDown(KeyCode.X))
             {
-                if (PodeMover)
+                if (PodeMover && isGrounded)
                 {
                     photonView.RPC("StrongAttack", RpcTarget.All);
                 }
 
             }
+
+
+           if (!agachado && moveV <= -0.1f && isGrounded)
+           {
+                HabilitaMovimentacao(false);
+                photonView.RPC("Crouch", RpcTarget.All);
+                agachado = true;
+           }
+           if (agachado && moveV >= -0.1f && isGrounded)
+           {
+                HabilitaMovimentacao(true);
+                photonView.RPC("Stand", RpcTarget.All);
+                agachado = false;
+           }
+               
         }
     }
 
@@ -507,6 +533,26 @@ private void UpdatePlayerStatsForDeadPlayer()
         _anim.SetTrigger("StrongA");
         attack.damage = 1;
         attack.hitStunDuration = 0.50f;
+    }
+
+    [PunRPC]
+    public void JumpAttack()
+    {
+        _anim.SetTrigger("JumpA");
+        attack.damage = 1;
+        attack.hitStunDuration = 0.25f;
+    }
+
+    [PunRPC]
+    public void Crouch()
+    {
+        _anim.SetTrigger("Crouch");
+    }
+
+    [PunRPC]
+    public void Stand()
+    {
+        _anim.SetTrigger("Stand");
     }
 
     public void GrantCurrencyReward(string currencyCode, int amount)

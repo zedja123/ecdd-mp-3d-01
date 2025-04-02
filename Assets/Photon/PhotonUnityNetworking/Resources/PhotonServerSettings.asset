@@ -60,6 +60,9 @@ MonoBehaviour:
   - UpdateStatsAfterKill
   - LeaveRoom
   - ApplyRandomBackground
+  - JumpAttack
+  - Crouch
+  - Stand
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

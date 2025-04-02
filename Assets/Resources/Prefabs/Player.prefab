@@ -213,9 +213,11 @@ MonoBehaviour:
   invincible: 0
   gm: {fileID: 0}
   attack: {fileID: 5247950037193347899}
+  opponent: {fileID: 0}
   maxHealth: 10
   currentHealth: 0
   knockbackForce: 5
+  flipped: 0
 --- !u!212 &6585809494391940224
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -394,6 +396,15 @@ MonoBehaviour:
   - Type: 4
     SynchronizeType: 2
     Name: Alive
+  - Type: 4
+    SynchronizeType: 0
+    Name: Crouch
+  - Type: 1
+    SynchronizeType: 0
+    Name: yVel
+  - Type: 4
+    SynchronizeType: 0
+    Name: Jumping
   m_SynchronizeLayers:
   - SynchronizeType: 0
     LayerIndex: 0

@@ -82,12 +82,11 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
             PhotonView pv = p.GetComponent<PhotonView>();
             if (!pv.IsMine) // Find opponent
             {
-                Debug.Log("OPP: " + opponent);
+                
                 opponent = p.transform;
-                opponent.gameObject.GetComponent<PlayerController>().flipped = true;
+                Debug.Log("OPP: " + opponent);
                 break;
-            }else
-                flipped = false;
+            }
         }
         
 
@@ -116,6 +115,18 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     {
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.1f, groundLayer);
         _anim.SetBool("Jumping", !isGrounded);
+
+        if (opponent != null && photonView.IsMine) // Only check for the local player
+        {
+            bool shouldFlip = (transform.position.x > opponent.position.x && isFacingRight) ||
+                              (transform.position.x < opponent.position.x && !isFacingRight);
+
+            if (shouldFlip)
+            {
+                photonView.RPC("Flip", RpcTarget.AllBuffered); // Ensure sync across all players
+            }
+        }
+
         if (photonView.IsMine)
         {
             moveH = Input.GetAxis("Horizontal");
@@ -241,14 +252,6 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
             {
                 _rb.velocity = new Vector2(Movement.x, _rb.velocity.y);
             }
-            if (PodeMover)
-            {
-                if (transform.position.x > opponent.position.x)
-                    flipped = true;
-                else
-                    flipped = false;
-                photonView.RPC("Flip", RpcTarget.All,flipped);
-            }
            
         }
         else
@@ -288,13 +291,14 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         Movement = new Vector2(moveH * PlayerSpeed, jump);
     }
     [PunRPC]
-    private void Flip(bool flipped)
+    private void Flip()
     {
-        if (opponent != null && flipped)
+        if (photonView.IsMine) // Ensure only the owner flips themselves
         {
-                Vector3 localScale = transform.localScale;
-                localScale.x *= -1f;
-                transform.localScale = localScale;          
+            isFacingRight = !isFacingRight; // Toggle facing direction
+            Vector3 localScale = transform.localScale;
+            localScale.x *= -1f;
+            transform.localScale = localScale;
         }
     }
 

@@ -103,7 +103,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         moveH = -1f;
         if (photonView.IsMine)
         {
-         
+            moveH = Input.GetAxis("Horizontal"); ;
             moveV = Input.GetAxis("Vertical");
 
             // Only allow jumping if the player is on the ground

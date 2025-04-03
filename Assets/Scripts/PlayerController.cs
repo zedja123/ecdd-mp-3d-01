@@ -295,7 +295,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     private void MovementAnim(float moveH)
     {
-        _anim.SetFloat("Velocity", Math.Abs(moveH));
+        _anim.SetFloat("xVel", Math.Abs(moveH));
     }
 
     public void Hit(float duration)

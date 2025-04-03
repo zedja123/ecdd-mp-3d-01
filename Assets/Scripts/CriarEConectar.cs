@@ -35,7 +35,7 @@ public class CriarEConectar : MonoBehaviourPunCallbacks
         _options.IsOpen = true;
         _options.PublishUserId = true;
         _nickname.text = PlayFabLogin.PFL.Nickname;
-        MudaNome();
+
 
     }
 

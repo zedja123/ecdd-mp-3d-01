@@ -13,6 +13,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     [SerializeField] private TMP_Text _textPlayerCount;
     [SerializeField] public Sprite P1Sprite;
     [SerializeField] public Sprite P2Sprite;
+    [SerializeField] public GameObject startGameBtn;
     int _playersCount;
 
 
@@ -46,6 +47,11 @@ public class LobbyManager : MonoBehaviourPunCallbacks
             Sprite newSprite = Resources.Load<Sprite>(spriteName);
             Debug.Log(spriteName);
             _playersPanels[i].GetComponentInChildren<Image>().sprite = newSprite;
+        }
+
+        if(PhotonNetwork.IsConnected && PhotonNetwork.IsMasterClient && _playersCount == 2)
+        {
+            startGameBtn.SetActive(true);
         }
     }
 

@@ -17,10 +17,11 @@ using System.ComponentModel;
 public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 {
     #region Private Fields
+    private int lastHealth = -1;
     public Image myHealthBar;
     public Transform groundCheck;  // Assign in Inspector (place it near player's feet)
     public LayerMask groundLayer;  // Assign this in Inspector to "Terrain"
-    private bool isGrounded;
+    public bool playerIsGrounded;
     private bool isJumpPressed;
     private bool isDead = false;
     public bool isHit;
@@ -36,7 +37,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     private bool isFacingRight = true;
 
     public bool invincible = false;
-    private bool agachado;
+    public bool playerIsCrouching;
     public GameManager gm;
     public Attack attack;
     private bool canJump = true;
@@ -46,7 +47,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     private int _localScore;
 
     public int maxHealth = 10;
-    [SerializeField] private int currentHealth;
+    [SerializeField] public int currentHealth;
 
     [SerializeField] private float knockbackForce = 5f;
     public bool PodeMover { get; private set; }
@@ -59,11 +60,6 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
     public Vector3 Movement { get; set; }
     public float JumpForce => _jumpForce;
-    public float PlayerSpeed
-    {
-        get => _playerSpeed;
-        set => _playerSpeed = value;
-    }
 
     #endregion
 
@@ -75,21 +71,9 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     // Start is called before the first frame update
     void Start()
     {
-        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-
-        foreach (GameObject p in players)
-        {
-            PhotonView pv = p.GetComponent<PhotonView>();
-            if (!pv.IsMine) // Find opponent
-            {
-                
-                opponent = p.transform;
-                Debug.Log("OPP: " + opponent);
-                break;
-            }
-        }
-        
-
+        invincible = false;
+        isDead = false;
+        StartCoroutine(FindOpponent());
         Debug.Log($"[Photon] Player Start. ViewID: {photonView.ViewID} | IsMine: {photonView.IsMine}");
         AssignHealthBar();
         gm = GameObject.Find("GameManager")?.GetComponent<GameManager>();
@@ -113,27 +97,17 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     // Update is called once per frame
     void Update()
     {
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.1f, groundLayer);
-        _anim.SetBool("Jumping", !isGrounded);
+        playerIsGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.1f, groundLayer);
+        _anim.SetBool("Jumping", !playerIsGrounded);
 
-        if (opponent != null && photonView.IsMine) // Only check for the local player
-        {
-            bool shouldFlip = (transform.position.x > opponent.position.x && isFacingRight) ||
-                              (transform.position.x < opponent.position.x && !isFacingRight);
-
-            if (shouldFlip)
-            {
-                photonView.RPC("Flip", RpcTarget.AllBuffered); // Ensure sync across all players
-            }
-        }
-
+        moveH = -1f;
         if (photonView.IsMine)
         {
-            moveH = Input.GetAxis("Horizontal");
+         
             moveV = Input.GetAxis("Vertical");
 
             // Only allow jumping if the player is on the ground
-            if (canJump && Input.GetButtonDown("Jump") && isGrounded)
+            if (canJump && Input.GetButtonDown("Jump") && playerIsGrounded)
             {
                 isJumpPressed = true;
                 
@@ -148,54 +122,53 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
         _anim.SetFloat("yVel",_rb.velocity.y);
         //INPUTS
+        if (!playerIsCrouching && moveV <= -0.1f && playerIsGrounded)
+        {
+            if (playerIsCrouching) return;
+            HabilitaMovimentacao(false);
+            playerIsCrouching = true;
+            canJump = false;
+            _rb.velocity = Vector2.zero;
+            photonView.RPC("Crouch", RpcTarget.All);
+
+        }
+        if (playerIsCrouching && moveV >= -0.1f && playerIsGrounded)
+        {
+            if (!playerIsCrouching) return;
+            HabilitaMovimentacao(true);
+            playerIsCrouching = false;
+            canJump = true;
+            photonView.RPC("Stand", RpcTarget.All);
+
+        }
+
         if (photonView.IsMine)
         {
             if (Input.GetKeyDown(KeyCode.Z))
             {
-                if (PodeMover && isGrounded)
+                if (PodeMover && playerIsGrounded)
                 {
                     photonView.RPC("WeakAttack", RpcTarget.All);
                 }
-                else if(PodeMover && !isGrounded)
+                else if(PodeMover && !playerIsGrounded)
                 {
-
+                    photonView.RPC("JumpWeakAttack", RpcTarget.All);
                 }
-                else if(agachado && isGrounded)
+                else if(playerIsCrouching && playerIsGrounded)
                 {
-
+                    photonView.RPC("CrouchWeakAttack", RpcTarget.All);
                 }
 
             }
 
             if (Input.GetKeyDown(KeyCode.X))
             {
-                if (PodeMover && isGrounded)
+                if (PodeMover && playerIsGrounded)
                 {
                     photonView.RPC("StrongAttack", RpcTarget.All);
                 }
 
             }
-
-
-           if (!agachado && moveV <= -0.1f && isGrounded)
-           {
-                if(agachado) return;
-                HabilitaMovimentacao(false);
-                agachado = true;
-                canJump = false;
-                _rb.velocity = Vector2.zero;
-                photonView.RPC("Crouch", RpcTarget.All);
-               
-           }
-           if (agachado && moveV >= -0.1f && isGrounded)
-           {
-                if (!agachado) return;
-                HabilitaMovimentacao(true);
-                agachado = false;
-                canJump = true;
-                photonView.RPC("Stand", RpcTarget.All);
-                
-           }
                
         }
     }
@@ -224,15 +197,15 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
+
     [PunRPC]
-    public void UpdateHealthUI(int health)
+    void UpdateHealthBar(int newHealth)
     {
-        if (myHealthBar != null)
-        {
-            float healthRatio = (float)health / maxHealth;
-            myHealthBar.fillAmount = healthRatio;
-            Debug.Log($"{photonView.Owner.NickName} updated health: {healthRatio}");
-        }
+        Debug.Log($"[UpdateHealthUI] Called for {photonView.Owner.NickName} by {PhotonNetwork.LocalPlayer.NickName}, isMine: {photonView.IsMine}, new health: {newHealth}");
+        Debug.Log("[UpdateHealthUI] Stack Trace:\n" + Environment.StackTrace);
+        if (newHealth == lastHealth) return; // Prevent unnecessary updates
+        lastHealth = newHealth;
+        myHealthBar.fillAmount = (float)newHealth / maxHealth;
     }
 
 
@@ -240,9 +213,29 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     {
         if (photonView.IsMine)
         {
-            Vector2 Movement = new Vector2(moveH * PlayerSpeed, _rb.velocity.y);
+            Debug.Log("OPP: " + opponent);
+            if (PodeMover)
+            {
+                Debug.Log("PodeMover");
+                if (opponent != null)
+                {
+                    if (transform.position.x > opponent.position.x && !flipped)
+                    {
+                        Debug.Log("flip called - facing left");
+                        photonView.RPC("Flip", RpcTarget.All);
+                        flipped = true;
+                    }
+                    else if (transform.position.x < opponent.position.x && flipped)
+                    {
+                        Debug.Log("flip called - facing right");
+                        photonView.RPC("Flip", RpcTarget.All);
+                        flipped = false;
+                    }
+                }
+            }
+            Vector2 Movement = new(moveH * _playerSpeed, _rb.velocity.y);
 
-            if (isJumpPressed && isGrounded) // Ensures jump only when grounded
+            if (isJumpPressed && playerIsGrounded) // Ensures jump only when grounded
             {
                 _rb.velocity = new Vector2(_rb.velocity.x, JumpForce);
                 isJumpPressed = false; // Reset jump input
@@ -260,6 +253,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         }
 
 
+
     }
 
 
@@ -270,13 +264,11 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         {
             stream.SendNext((Vector3)transform.position);
             stream.SendNext(_nickname);
-            stream.SendNext(currentHealth);
         }
         else
         {
             networkPosition = (Vector3)stream.ReceiveNext();
             _nickname = (string)stream.ReceiveNext();
-            currentHealth = (int)stream.ReceiveNext();
 
             HandlePlayerDeath();
             //_namePlayer.text = _nickname;
@@ -288,18 +280,16 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     private void MovementRPC(float jump)
     {
-        Movement = new Vector2(moveH * PlayerSpeed, jump);
+        Movement = new Vector2(moveH * _playerSpeed, jump);
     }
     [PunRPC]
-    private void Flip()
+    public void Flip()
     {
-        if (photonView.IsMine) // Ensure only the owner flips themselves
-        {
-            isFacingRight = !isFacingRight; // Toggle facing direction
+
             Vector3 localScale = transform.localScale;
             localScale.x *= -1f;
             transform.localScale = localScale;
-        }
+        
     }
 
     [PunRPC]
@@ -327,26 +317,66 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     }
 
     [PunRPC]
-    public void TakeDamage(int damage, Vector2 hitDirection, float hitStunDuration)
+    public void TakeDamage(int damage, Vector2 hitDirection, float hitStunDuration, bool enemyIsGrounded, bool enemyIsCrouching)
     {
-        if(invincible) return;
-        Debug.Log("Move Direction: " + moveH);
-        Debug.Log("Hit Direction: " + hitDirection);
-        currentHealth -= damage;
-        photonView.RPC("UpdateHealthUI", RpcTarget.All, currentHealth); // ✅ Send health data
-        if (currentHealth <= 0)
+        Debug.Log("isdead" + isDead);
+        Debug.Log("invincible" + invincible);
+        Debug.Log($"TakeDamage called for {photonView.Owner.NickName}, photonView.IsMine: {photonView.IsMine}, Current Health: {currentHealth}");
+
+        if (isDead)
         {
-            // This player is dead, check who killed them
-            HandlePlayerDeath();
+            Debug.Log($"TakeDamage ignored - {photonView.Owner.NickName} is Dead.");
             return;
         }
 
-        _anim.SetTrigger("Damaged");
+        bool isBlocked = (moveH <= -0.1f && hitDirection.x >= 0) || (moveH >= 0.1f && hitDirection.x <= 0);
 
-        //_rb.velocity = new Vector2(hitDirection.x * knockbackForce, _rb.velocity.y);
+        if (isBlocked)
+        {
+                // Blocking Scenarios
+                if ((playerIsCrouching && enemyIsCrouching) ||  // Both crouching → Blocked
+                    (!playerIsCrouching && !enemyIsCrouching && enemyIsGrounded && playerIsGrounded) || // Both standing and not crouching → Blocked
+                    (!playerIsGrounded && !enemyIsGrounded) || // Both airborne → Blocked
+                    (!playerIsCrouching && playerIsGrounded && !enemyIsGrounded)) // Player standing (not crouching), enemy airborne → Blocked
+                {
+                    Debug.Log($"Attack BLOCKED by {photonView.Owner.NickName}! Health remains {currentHealth}");
 
-        StartCoroutine(HitCoroutine(hitStunDuration));
+                    if (playerIsCrouching)
+                        photonView.RPC("CrouchBlock", RpcTarget.All);
+                    else if (!playerIsCrouching && playerIsGrounded)
+                        photonView.RPC("Block", RpcTarget.All);
+                    else if (!playerIsGrounded)
+                        photonView.RPC("JumpBlock", RpcTarget.All);
+
+                    Debug.Log($"[TakeDamage] Exiting early due to block!");
+                    return; // ✅ Exit function
+                }
+        }
+
+        // Damage calculation should only run on the player who owns this PhotonView
+        if (photonView.IsMine)
+        {
+            int previousHealth = currentHealth;
+            currentHealth -= damage;
+            Debug.Log($"[TakeDamage] Health changed from {previousHealth} to {currentHealth}");
+            photonView.RPC("UpdateHealthBar", RpcTarget.All, currentHealth);
+            if(currentHealth <= 0)
+            {
+                HandlePlayerDeath();
+            }
+        }
+
+        // ✅ Play animation and effects on all clients
+        photonView.RPC("DamageAnim", RpcTarget.All);
     }
+
+    [PunRPC]
+    void DamageAnim()
+    {
+        _anim.SetTrigger("Damaged");
+        Debug.Log("[TakeDamage] Played damage animation for everyone!");
+    }
+
 
     private void HandlePlayerDeath()
     {
@@ -357,7 +387,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
 
             // Trigger death animations, invincibility, disable movement, etc.
-            Die();
+            photonView.RPC("Die", RpcTarget.All);
 
             // Update the killer’s stats (if applicable)
             // This logic would depend on how the game identifies the killer.
@@ -562,6 +592,22 @@ private void UpdatePlayerStatsForDeadPlayer()
         gm.GameOver();
     }
 
+
+    [PunRPC]
+    public void Block()
+    {
+        _anim.SetTrigger("Block");
+    }
+    [PunRPC]
+    public void JumpBlock()
+    {
+        _anim.SetTrigger("JumpBlock");
+    }
+    [PunRPC]
+    public void CrouchBlock()
+    {
+        _anim.SetTrigger("CrouchBlock");
+    }
     [PunRPC]
     public void WeakAttack()
     {
@@ -578,9 +624,17 @@ private void UpdatePlayerStatsForDeadPlayer()
     }
 
     [PunRPC]
-    public void JumpAttack()
+    public void JumpWeakAttack()
     {
-        _anim.SetTrigger("JumpA");
+        _anim.SetTrigger("JumpWeakA");
+        attack.damage = 1;
+        attack.hitStunDuration = 0.25f;
+    }
+
+    [PunRPC]
+    public void CrouchWeakAttack()
+    {
+        _anim.SetTrigger("CrouchWeakA");
         attack.damage = 1;
         attack.hitStunDuration = 0.25f;
     }
@@ -627,6 +681,26 @@ private void UpdatePlayerStatsForDeadPlayer()
         else
         {
             Debug.Log("[Photon] This instance is controlled by another player.");
+        }
+    }
+
+    IEnumerator FindOpponent()
+    {
+        while (opponent == null) // Keep checking until an opponent is found
+        {
+            GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+
+            foreach (GameObject p in players)
+            {
+                PhotonView pv = p.GetComponent<PhotonView>();
+                if (!pv.IsMine) // Ensure it's the opponent
+                {
+                    opponent = p.transform;
+                    Debug.Log("Opponent assigned: " + opponent.name);
+                    yield break; // Exit loop once the opponent is found
+                }
+            }
+            yield return new WaitForSeconds(0.5f); // Wait and try again
         }
     }
 }

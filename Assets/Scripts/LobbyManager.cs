@@ -5,11 +5,14 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class LobbyManager : MonoBehaviourPunCallbacks
 {
     [SerializeField] private List<GameObject> _playersPanels;
     [SerializeField] private TMP_Text _textPlayerCount;
+    [SerializeField] public Sprite P1Sprite;
+    [SerializeField] public Sprite P2Sprite;
     int _playersCount;
 
 
@@ -39,6 +42,10 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         {
             _playersPanels[i].SetActive(true);
             _playersPanels[i].GetComponentInChildren<TMP_Text>().text = playersList[i].NickName;
+            string spriteName = PlayFabLogin.PFL.selectedChar.name;
+            Sprite newSprite = Resources.Load<Sprite>(spriteName);
+            Debug.Log(spriteName);
+            _playersPanels[i].GetComponentInChildren<Image>().sprite = newSprite;
         }
     }
 

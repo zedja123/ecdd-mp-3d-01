@@ -92,6 +92,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damage: 1
   hitStunDuration: 0.25
+  player: {fileID: 7119176949621798014}
 --- !u!1 &5313582863583569614
 GameObject:
   m_ObjectHideFlags: 0
@@ -207,10 +208,12 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
+  playerIsGrounded: 0
   isHit: 0
   _jumpForce: 15
   _playerSpeed: 10
   invincible: 0
+  playerIsCrouching: 0
   gm: {fileID: 0}
   attack: {fileID: 5247950037193347899}
   opponent: {fileID: 0}

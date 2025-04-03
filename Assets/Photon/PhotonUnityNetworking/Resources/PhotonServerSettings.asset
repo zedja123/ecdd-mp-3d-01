@@ -64,6 +64,14 @@ MonoBehaviour:
   - Crouch
   - Stand
   - Jumping
+  - CrouchWeakAttack
+  - JumpWeakAttack
+  - Block
+  - CrouchBlock
+  - JumpBlock
+  - UpdateHealthUI2
+  - UpdateHealthBar
+  - DamageAnim
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

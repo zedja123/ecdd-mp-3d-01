@@ -100,10 +100,9 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         playerIsGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.1f, groundLayer);
         _anim.SetBool("Jumping", !playerIsGrounded);
 
-        moveH = -1f;
         if (photonView.IsMine)
         {
-            moveH = Input.GetAxis("Horizontal"); ;
+            moveH = Input.GetAxis("Horizontal");
             moveV = Input.GetAxis("Vertical");
 
             // Only allow jumping if the player is on the ground
@@ -243,7 +242,12 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
             if (PodeMover)
             {
+                Debug.Log("Pode Mover");
                 _rb.velocity = new Vector2(Movement.x, _rb.velocity.y);
+            }
+            else
+            {
+                Debug.Log("Não Pode Mover");
             }
            
         }
@@ -277,11 +281,6 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
     }
 
-    [PunRPC]
-    private void MovementRPC(float jump)
-    {
-        Movement = new Vector2(moveH * _playerSpeed, jump);
-    }
     [PunRPC]
     public void Flip()
     {
@@ -324,6 +323,11 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         Debug.Log($"TakeDamage called for {photonView.Owner.NickName}, photonView.IsMine: {photonView.IsMine}, Current Health: {currentHealth}");
 
         if (isDead)
+        {
+            Debug.Log($"TakeDamage ignored - {photonView.Owner.NickName} is Dead.");
+            return;
+        }
+        if (invincible)
         {
             Debug.Log($"TakeDamage ignored - {photonView.Owner.NickName} is Dead.");
             return;
@@ -584,8 +588,8 @@ private void UpdatePlayerStatsForDeadPlayer()
         isDead = true;
         invincible = true;
         Debug.Log("Die invincibility");
-        HabilitaMovimentacao(false);
         Debug.Log("Die movement");
+        PodeMover = false;
         _anim.SetTrigger("Defeat");
         _anim.SetBool("Alive", false);
         Debug.Log("Die anim trigger");

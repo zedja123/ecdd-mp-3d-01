@@ -3602,7 +3602,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0f916cd8143ab74bae854e51ca2a389, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectedChar: {fileID: 7119176949621798014, guid: 86adf63515c12f948a7dd540b7d48ae0, type: 3}
+  selectedChar: {fileID: 7119176949621798014, guid: 1340bcd9d54a73947b2e99ca96c22af4, type: 3}
   PlayFabID: 
   Nickname: 
   EntityID: 

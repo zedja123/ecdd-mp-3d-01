@@ -961,7 +961,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1104647485
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1124,8 +1124,9 @@ MonoBehaviour:
   - {fileID: 1187992971}
   - {fileID: 1056815326}
   _textPlayerCount: {fileID: 965484942}
-  P1Sprite: {fileID: 0}
-  P2Sprite: {fileID: 0}
+  P1Sprite: {fileID: 1187992973}
+  P2Sprite: {fileID: 1056815328}
+  startBtn: {fileID: 1104647484}
 --- !u!1 &1187992971
 GameObject:
   m_ObjectHideFlags: 0

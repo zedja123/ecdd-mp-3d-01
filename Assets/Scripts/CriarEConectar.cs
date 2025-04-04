@@ -35,7 +35,7 @@ public class CriarEConectar : MonoBehaviourPunCallbacks
         _options.IsOpen = true;
         _options.PublishUserId = true;
         _nickname.text = PlayFabLogin.PFL.Nickname;
-
+        MudaNome();
 
     }
 
@@ -139,6 +139,12 @@ public class CriarEConectar : MonoBehaviourPunCallbacks
     public void  SelectChar(GameObject character)
     {
         PlayFabLogin.PFL.selectedChar = character;
+        // When player selects a character:
+        ExitGames.Client.Photon.Hashtable props = new ExitGames.Client.Photon.Hashtable
+{
+    { "CharName", character.name }
+};
+        PhotonNetwork.LocalPlayer.SetCustomProperties(props);
     }
 
     #endregion

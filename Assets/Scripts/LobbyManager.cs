@@ -6,13 +6,15 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
 
 public class LobbyManager : MonoBehaviourPunCallbacks
 {
     [SerializeField] private List<GameObject> _playersPanels;
     [SerializeField] private TMP_Text _textPlayerCount;
-    [SerializeField] public Sprite P1Sprite;
-    [SerializeField] public Sprite P2Sprite;
+    [SerializeField] public Image P1Sprite;
+    [SerializeField] public Image P2Sprite;
+    [SerializeField] public GameObject startBtn;
     int _playersCount;
 
 
@@ -32,9 +34,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         Player[] playersList = PhotonNetwork.PlayerList;
 
         if (_playersCount <= 0)
-        {
             return;
-        }
 
         _textPlayerCount.text = _playersCount.ToString();
 
@@ -42,12 +42,27 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         {
             _playersPanels[i].SetActive(true);
             _playersPanels[i].GetComponentInChildren<TMP_Text>().text = playersList[i].NickName;
-            string spriteName = PlayFabLogin.PFL.selectedChar.name;
-            Sprite newSprite = Resources.Load<Sprite>(spriteName);
-            Debug.Log(spriteName);
-            _playersPanels[i].GetComponentInChildren<Image>().sprite = newSprite;
+
+            if (playersList[i].CustomProperties.ContainsKey("CharName"))
+            {
+                string charName = (string)playersList[i].CustomProperties["CharName"];
+                Sprite charSprite = Resources.Load<Sprite>(charName);
+
+                // Assign sprite to correct image
+                if (i == 0)
+                    P1Sprite.sprite = charSprite;
+                else if (i == 1)
+                    P2Sprite.sprite = charSprite;
+            }
+        }
+
+        if (_playersCount == 2 && PhotonNetwork.IsMasterClient)
+        {
+            startBtn.SetActive(true);
         }
     }
+
+
 
     public void StartGame()
     {
